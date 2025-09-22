@@ -4,74 +4,56 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ניסוי וידאו — מתן ציון</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Assistant', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background:#0b0f14; color:#eef2f6; }
-    .wrap { max-width: 760px; margin: 0 auto; padding: 20px; }
-    .card { background:#111823; border:1px solid #1b2433; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
-    h1 { margin: 0 0 10px; font-weight:700; }
-    .muted { color:#a9b4c6; font-size: 0.95rem; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 20px; background:#0b0f14; color:#eef2f6; }
+    .card { max-width: 760px; margin: 0 auto; background:#111823; border:1px solid #1b2433; border-radius: 16px; padding: 20px; }
     video { width: 100%; border-radius: 12px; border:1px solid #1b2433; background:#000; }
     .row { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
     .field { flex: 1 1 180px; }
-    .field label { display:block; font-weight:600; margin:10px 0 6px; }
-    input[type="text"], input[type="password"] { width: 100%; padding: 10px 12px; border-radius: 10px; border:1px solid #243044; background:#0e141d; color:#eef2f6; }
-    input[type="range"] { width: 100%; }
-    .btn { appearance:none; border:0; padding: 12px 18px; border-radius: 12px; background:#4b8bff; color:white; font-weight:700; cursor:pointer; box-shadow: 0 6px 18px rgba(75,139,255,0.25); }
-    .btn[disabled] { background:#33415c; cursor:not-allowed; box-shadow:none; }
-    .pill { display:inline-block; border:1px solid #27406a; padding:4px 10px; border-radius:999px; font-size:0.9rem; color:#c3d2f2; }
-    .center { text-align:center; }
+    .btn { appearance:none; border:0; padding: 12px 18px; border-radius: 12px; background:#4b8bff; color:white; font-weight:700; cursor:pointer; }
+    .btn[disabled] { background:#33415c; cursor:not-allowed; }
     .hr { border-top:1px dashed #243044; margin:16px 0; }
     .success { background:#0e2a14; border:1px solid #275f3a; color:#bff0c9; padding:12px; border-radius:10px; }
     .error { background:#2a1212; border:1px solid #5f2727; color:#f0bfbf; padding:12px; border-radius:10px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="row" style="justify-content: space-between; align-items: baseline;">
-        <h1>צפייה בסרטון ומתן ציון</h1>
-        <span id="videoLabel" class="pill"></span>
+  <div class="card">
+    <h1>צפייה בסרטון ומתן ציון</h1>
+    <p>צפו בסרטון עד הסוף. כפתור השליחה ייפתח רק אחרי סיום.</p>
+
+    <video id="vid" controls playsinline>
+      הדפדפן שלך לא תומך בווידאו.
+    </video>
+
+    <div class="hr"></div>
+
+    <div class="row">
+      <div class="field">
+        <label for="participant">מזהה נבדק (לא חובה)</label>
+        <input id="participant" type="text" placeholder="למשל: S01" />
       </div>
-      <p class="muted">צפו בסרטון עד הסוף. הכפתור להגשת הציון ייפתח רק כאשר הצפייה הסתיימה.</p>
-
-      <video id="vid" controls playsinline controlsList="nodownload noremoteplayback">
-        הדפדפן שלך לא תומך בווידאו.
-      </video>
-
-      <div class="hr"></div>
-
-      <div class="row">
-        <div class="field">
-          <label for="participant">מזהה נבדק (לא חובה)</label>
-          <input id="participant" type="text" placeholder="למשל: S01" />
-        </div>
-        <div class="field">
-          <label for="rating">ציון: <span id="ratingVal">5</span></label>
-          <input id="rating" type="range" min="1" max="10" step="1" value="5" />
-        </div>
+      <div class="field">
+        <label for="rating">ציון: <span id="ratingVal">5</span></label>
+        <input id="rating" type="range" min="1" max="10" step="1" value="5" />
       </div>
-
-      <div style="margin-top: 14px;" class="row">
-        <button id="submitBtn" class="btn" disabled>שליחת ציון</button>
-      </div>
-
-      <div id="msg" style="margin-top:14px"></div>
     </div>
 
-    <p class="muted center" style="margin-top:12px">צפייה בתוצאות: <a href="admin.html" style="color:#8fb3ff">admin.html</a></p>
+    <div style="margin-top: 14px;">
+      <button id="submitBtn" class="btn" disabled>שליחת ציון</button>
+    </div>
+
+    <div id="msg" style="margin-top:14px"></div>
   </div>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      // === מפתחות Supabase ===
+      // === Supabase ===
       const SUPABASE_URL = 'https://dbintxdkurajdgimcdeb.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiaW50eGRrdXJhamRnaW1jZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc1NTAsImV4cCI6MjA3NDEwMzU1MH0.usRUg5lTw96BaEydMV9wl8vtuZ3-e0MZA1UUMgh5YaA';
       const RATINGS_TABLE = 'ratings';
 
-      // להתחיל עם סרטון בדיקה תקין; אחרי שעובד, להחליף לכתובת שלך
+      // נתחיל עם סרטון דוגמה תקין; אחר-כך תחליפי לכתובת שלך
       const videoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
 
       const params = new URLSearchParams(location.search);
@@ -83,12 +65,9 @@
       const ratingVal = document.getElementById('ratingVal');
       const submitBtn = document.getElementById('submitBtn');
       const msg = document.getElementById('msg');
-      const videoLabel = document.getElementById('videoLabel');
 
-      // טוענים את הוידאו
-      vid.preload = "metadata";
+      // טוענים וידאו
       vid.src = videoUrl;
-      try { videoLabel.textContent = new URL(videoUrl).pathname.split('/').pop(); } catch { videoLabel.textContent = videoUrl; }
 
       participantInput.value = initialPid;
       rating.addEventListener('input', () => { ratingVal.textContent = rating.value; });
