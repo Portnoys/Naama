@@ -4,11 +4,11 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiaW50eGRrdXJhamRnaW1jZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc1NTAsImV4cCI6MjA3NDEwMzU1MH0.usRUg5lTw96BaEydMV9wl8vtuZ3-e0MZA1UUMgh5YaA';
   const RATINGS_TABLE = 'ratings';
 
-  // וידאו קבוע שמוטמע בעמוד
-  const videoUrl = "https://portnoys.github.io/Naama/test.mp4";
+  // ❶ תחילי לבדיקה עם סרטון דוגמה תקין (אחרי שעובד—תשני לכתובת שלך)
+  // דוגמת W3Schools: קובץ mp4 פתוח לכולם
+  const videoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
 
-  // אם תרצי לאפשר pid מה-URL, השאירי את שתי השורות הבאות;
-  // אם לא — החליפי לשורה: const initialPid = '';
+  // אם תרצי לאפשר pid מה-URL, השאירי את שתי השורות; אם לא, אפשר: const initialPid = '';
   const params = new URLSearchParams(location.search);
   const initialPid = params.get('pid') || '';
 
@@ -20,26 +20,27 @@
   const msg = document.getElementById('msg');
   const videoLabel = document.getElementById('videoLabel');
 
-  // מאחר שיש לנו videoUrl קבוע, פשוט נטען אותו
+  // טוענים את הווידאו ומציגים שם קובץ
+  vid.preload = "metadata";
   vid.src = videoUrl;
   try { videoLabel.textContent = new URL(videoUrl).pathname.split('/').pop(); } catch { videoLabel.textContent = videoUrl; }
-
   participantInput.value = initialPid;
 
-  rating.addEventListener('input', () => {
-    ratingVal.textContent = rating.value;
+  // עדכון תצוגת הציון
+  rating.addEventListener('input', () => { ratingVal.textContent = rating.value; });
+
+  // האזנה לשגיאות וידאו כדי לדעת אם הבעיה היא בקובץ/כתובת
+  vid.addEventListener('error', (e) => {
+    console.error('Video error', e, vid.error);
+    msg.innerHTML = '<div class="error">שגיאה בטעינת הווידאו. בדקי שהקישור נכון ושזה MP4 תקין.</div>';
   });
 
-  // חסימת דילוג קדימה בסיסית (לא חובה)
-  let lastTime = 0;
-  vid.addEventListener('timeupdate', () => {
-    if (vid.currentTime > lastTime + 5) {
-      vid.currentTime = lastTime;
-    } else {
-      lastTime = vid.currentTime;
-    }
+  // כאשר הסרטון מוכן לניגון
+  vid.addEventListener('loadeddata', () => {
+    console.log('Video loaded');
   });
 
+  // לאפשר שליחה רק כשהסרטון נגמר
   let videoCompleted = false;
   vid.addEventListener('ended', () => {
     videoCompleted = true;
