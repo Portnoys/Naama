@@ -79,18 +79,24 @@
       vid.addEventListener('ended', () => { videoCompleted = true; submitBtn.disabled = false; });
 
       async function supabaseInsert(row) {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          },
-          body: JSON.stringify(row)
-        });
-        if (!res.ok) { throw new Error(await res.text() || 'שגיאה בשמירה ל-Supabase'); }
-        return res.json();
-      }
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      // בלי Prefer – השרת יחזיר גוף ריק
+    },
+    body: JSON.stringify(row)
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(t || 'שגיאה בשמירה ל-Supabase');
+  }
+  // אין res.json(); פשוט להחזיר
+  return true;
+}
+     
 
       submitBtn.addEventListener('click', async () => {
         if (!videoCompleted) { msg.innerHTML = '<div class="error">יש להשלים צפייה בסרטון לפני שליחה.</div>'; return; }
