@@ -1,0 +1,287 @@
+// =============================
+// 🌐 פריסה אונליין ב‑GitHub Pages + Supabase (בלי שרת Node)
+// =============================
+// בגירסה זו אין server.js. כל הצד‑שרת מוחלף ב-Supabase (Postgres עם REST מובנה).
+// תצטרכי ליצור פרויקט Supabase, להגדיר טבלה, ולהדביק שני ערכים (SUPABASE_URL, SUPABASE_ANON_KEY) בקוד.
+
+// =============================
+// 📁 index.html (להניח בשורש הריפו)
+// =============================
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ניסוי וידאו — מתן ציון</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Assistant', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background:#0b0f14; color:#eef2f6; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 20px; }
+    .card { background:#111823; border:1px solid #1b2433; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+    h1 { margin: 0 0 10px; font-weight:700; }
+    .muted { color:#a9b4c6; font-size: 0.95rem; }
+    video { width: 100%; border-radius: 12px; border:1px solid #1b2433; background:#000; }
+    .row { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+    .field { flex: 1 1 180px; }
+    .field label { display:block; font-weight:600; margin:10px 0 6px; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 10px 12px; border-radius: 10px; border:1px solid #243044; background:#0e141d; color:#eef2f6; }
+    input[type="range"] { width: 100%; }
+    .btn { appearance:none; border:0; padding: 12px 18px; border-radius: 12px; background:#4b8bff; color:white; font-weight:700; cursor:pointer; box-shadow: 0 6px 18px rgba(75,139,255,0.25); }
+    .btn[disabled] { background:#33415c; cursor:not-allowed; box-shadow:none; }
+    .pill { display:inline-block; border:1px solid #27406a; padding:4px 10px; border-radius:999px; font-size:0.9rem; color:#c3d2f2; }
+    .center { text-align:center; }
+    .hr { border-top:1px dashed #243044; margin:16px 0; }
+    .success { background:#0e2a14; border:1px solid #275f3a; color:#bff0c9; padding:12px; border-radius:10px; }
+    .error { background:#2a1212; border:1px solid #5f2727; color:#f0bfbf; padding:12px; border-radius:10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="row" style="justify-content: space-between; align-items: baseline;">
+        <h1>צפייה בסרטון ומתן ציון</h1>
+        <span id="videoLabel" class="pill"></span>
+      </div>
+      <p class="muted">צפו בסרטון עד הסוף. הכפתור להגשת הציון ייפתח רק כאשר הצפייה הסתיימה.</p>
+
+      <video id="vid" controls playsinline controlsList="nodownload noremoteplayback">
+        הדפדפן שלך לא תומך בווידאו.
+      </video>
+
+      <div class="hr"></div>
+
+      <div class="row">
+        <div class="field">
+          <label for="participant">מזהה נבדק (לא חובה)</label>
+          <input id="participant" type="text" placeholder="למשל: S01" />
+        </div>
+        <div class="field">
+          <label for="rating">ציון: <span id="ratingVal">5</span></label>
+          <input id="rating" type="range" min="1" max="10" step="1" value="5" />
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;" class="row">
+        <button id="submitBtn" class="btn" disabled>שליחת ציון</button>
+      </div>
+
+      <div id="msg" style="margin-top:14px"></div>
+    </div>
+
+    <p class="muted center" style="margin-top:12px">צפייה בתוצאות: <a href="admin.html" style="color:#8fb3ff">admin.html</a></p>
+  </div>
+
+  <script>
+    // === הגדרי כאן את מפתחות Supabase שלך ===
+    const SUPABASE_URL = 'PASTE_YOUR_SUPABASE_URL_HERE';
+    const SUPABASE_ANON_KEY = 'PASTE_YOUR_ANON_KEY_HERE';
+    const RATINGS_TABLE = 'ratings';
+
+    const params = new URLSearchParams(location.search);
+    const videoUrl = params.get('v');
+    const initialPid = params.get('pid') || '';
+
+    const vid = document.getElementById('vid');
+    const participantInput = document.getElementById('participant');
+    const rating = document.getElementById('rating');
+    const ratingVal = document.getElementById('ratingVal');
+    const submitBtn = document.getElementById('submitBtn');
+    const msg = document.getElementById('msg');
+    const videoLabel = document.getElementById('videoLabel');
+
+    if (!videoUrl) {
+      vid.outerHTML = '<div class="error">חסר פרמטר וידאו ?v=... בכתובת. לדוגמה: ?v=https://.../file.mp4</div>';
+      submitBtn.disabled = true;
+    } else {
+      vid.src = videoUrl;
+      try { videoLabel.textContent = new URL(videoUrl).pathname.split('/').pop(); } catch { videoLabel.textContent = videoUrl; }
+    }
+
+    participantInput.value = initialPid;
+
+    rating.addEventListener('input', () => {
+      ratingVal.textContent = rating.value;
+    });
+
+    // חסימת "קפיצה" לאחור/קדימה (בסיסי). אפשר להסיר אם לא נחוץ.
+    let lastTime = 0;
+    vid.addEventListener('timeupdate', () => {
+      if (vid.currentTime > lastTime + 5) {
+        // דילוג קדימה ביותר מ-5 שניות -> נחזיר אחורה
+        vid.currentTime = lastTime;
+      } else {
+        lastTime = vid.currentTime;
+      }
+    });
+
+    let videoCompleted = false;
+    vid.addEventListener('ended', () => {
+      videoCompleted = true;
+      submitBtn.disabled = false;
+    });
+
+    async function supabaseInsert(row) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify(row)
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(t || 'שגיאה בשמירה ל-Supabase');
+      }
+      return res.json();
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      if (!videoUrl) return;
+      if (!videoCompleted) {
+        msg.innerHTML = '<div class="error">יש להשלים צפייה בסרטון לפני שליחה.</div>';
+        return;
+      }
+      submitBtn.disabled = true;
+      msg.textContent = '';
+
+      try {
+        const payload = {
+          participant_id: participantInput.value.trim() || null,
+          video_url: videoUrl,
+          rating: parseInt(rating.value, 10),
+          user_agent: navigator.userAgent.slice(0, 500),
+          meta: { pageHref: location.href, endedOnce: true }
+        };
+        await supabaseInsert(payload);
+        msg.innerHTML = '<div class="success">הציון נשמר. תודה רבה!</div>';
+      } catch (e) {
+        msg.innerHTML = `<div class="error">${e.message}</div>`;
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+// =============================
+// 📁 admin.html (להניח בשורש הריפו)
+// =============================
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>תוצאות ציון</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border:1px solid #ccc; padding:8px; }
+    th { background: #f5f5f5; }
+    input { padding:6px 8px; }
+    .muted { color:#666; }
+  </style>
+</head>
+<body>
+  <h2>תוצאות</h2>
+  <p class="muted">סינון וטעינה מתוך Supabase.</p>
+  <div>
+    <label>Supabase URL: <input id="url" size="42" placeholder="https://XYZ.supabase.co"></label>
+    <label>Anon Key: <input id="key" size="42" placeholder="ey..." type="password"></label>
+  </div>
+  <div style="margin-top:8px;">
+    <label>סינון לפי וידאו URL: <input id="fVideo" size="40"></label>
+    <label> מזהה נבדק: <input id="fPid" size="12"></label>
+    <button id="loadBtn">טען</button>
+  </div>
+  <table id="tbl" style="margin-top:10px">
+    <thead>
+      <tr><th>#</th><th>מזהה נבדק</th><th>וידאו</th><th>ציון</th><th>תאריך</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const urlInput = document.getElementById('url');
+    const keyInput = document.getElementById('key');
+    const fVideo = document.getElementById('fVideo');
+    const fPid = document.getElementById('fPid');
+    const loadBtn = document.getElementById('loadBtn');
+    const tbody = document.querySelector('#tbl tbody');
+
+    // אם תרצי, אפשר להקשיח פה את ה-URL וה-Key כדי לא להקליד כל פעם
+    // urlInput.value = 'https://YOUR.supabase.co';
+    // keyInput.value = 'ANON_KEY';
+
+    async function load() {
+      const base = urlInput.value.trim();
+      const key = keyInput.value.trim();
+      if (!base || !key) { alert('נא למלא Supabase URL ו-Anon Key'); return; }
+
+      const params = new URLSearchParams();
+      if (fVideo.value.trim()) params.set('video_url', `eq.${fVideo.value.trim()}`);
+      if (fPid.value.trim()) params.set('participant_id', `eq.${fPid.value.trim()}`);
+      params.set('select', 'id,participant_id,video_url,rating,created_at');
+      params.set('order', 'created_at.desc');
+      params.set('limit', '500');
+
+      const res = await fetch(`${base}/rest/v1/ratings?${params.toString()}`, {
+        headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
+      });
+      const data = await res.json();
+      tbody.innerHTML = '';
+      data.forEach((r) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.id}</td><td>${r.participant_id || ''}</td><td>${r.video_url}</td><td>${r.rating}</td><td>${r.created_at}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    loadBtn.addEventListener('click', load);
+  </script>
+</body>
+</html>
+
+
+// =============================
+// 🗃️ סכמת DB ב-Supabase
+// =============================
+// צרי טבלה בשם ratings עם העמודות הבאות:
+// id: bigint, primary key, identity
+// participant_id: text, nullable
+// video_url: text, not null
+// rating: int2 (או integer), not null, בדיקת טווח 1–10
+// user_agent: text, nullable
+// meta: jsonb, nullable
+// created_at: timestamptz, default now()
+// הרשאות (RLS): הפעלי RLS; כל אחד יכול INSERT ו-SELECT מוגבל. כללי דוגמה:
+// 1) מדיניות INSERT לכל: using (true) with check (true)
+// 2) מדיניות SELECT לכל: using (true)
+// אם נדרש פרטיות גבוהה יותר, אפשר לבטל SELECT לציבור ולקרוא נתונים דרך Key בצד אדמין בלבד.
+
+
+// =============================
+// ▶️ הוראות פריסה ל-GitHub Pages
+// =============================
+// 1) יצירת ריפו בגיטהאב והעלאת שני קבצים לשורש: index.html, admin.html
+// 2) Settings → Pages → Source: Deploy from a branch → בחרי את הסניף (למשל main) ואת התיקיה /root → Save
+// 3) המתיני לדף ה-Pages להיבנות. ה-URL יהיה בד"כ: https://<user>.github.io/<repo>/
+// 4) פתחי את index.html עם פרמטרים: ?v=https://.../video.mp4&pid=S01
+// 5) הדביקי בקובץ index.html את SUPABASE_URL ו-ANON_KEY שלך.
+// 6) לצפייה בתוצאות, פתחי admin.html והזיני את אותם פרטים (או תקבעי אותם ישירות בקוד).
+
+// ✅ טיפים
+// - אפשר לשים את ה-ANON KEY בקובץ נפרד ולכלול אותו בעמוד, אבל ב-GitHub Pages אין סודיות אמיתית בצד לקוח. זה בסדר למחקר ציבורי ללא מידע מזהה.
+// - אם צריך פרטיות חזקה: השאירי INSERT פתוח ו-SELECT חסום לציבור, וב-Admin תשתמשי בקובץ מקומי עם key בעל הרשאות מתאימות, או פרסיון פרטי.
+// - לחלופין אפשר להשתמש ב-Google Apps Script שמריץ כתיבה ל-Google Sheets ומסתיר את ה-Key; אם תרצי, אכין לך גם גירסה כזו.
+
+// - אפשר להנגיש לכל נבדק לינק עם אותו וידאו ו- pid שונה, או להחליף את ה-URL של הסרטון לכל משימה.
+// - אם תרצי לחסום דילוג קדימה, אפשר להגדיר controlsList="nodownload noplaybackrate noremoteplayback" ולנטר seeked.
+// - אפשר להוסיף שדות נוספים (למשל הערה טקסטואלית) — בצד הלקוח להוסיף input ובשרת להרחיב את הסכמה.
+// - לשמירה מאובטחת בענן, אפשר לחבר ל-Supabase/Firebase/Google Sheets—אשמח להוסיף קוד בהתאם לצורך.
