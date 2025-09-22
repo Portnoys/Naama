@@ -1,90 +1,138 @@
-<script>
-  // === מפתחות Supabase ===
-  const SUPABASE_URL = 'https://dbintxdkurajdgimcdeb.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiaW50eGRrdXJhamRnaW1jZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc1NTAsImV4cCI6MjA3NDEwMzU1MH0.usRUg5lTw96BaEydMV9wl8vtuZ3-e0MZA1UUMgh5YaA';
-  const RATINGS_TABLE = 'ratings';
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ניסוי וידאו — מתן ציון</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Assistant', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background:#0b0f14; color:#eef2f6; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 20px; }
+    .card { background:#111823; border:1px solid #1b2433; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+    h1 { margin: 0 0 10px; font-weight:700; }
+    .muted { color:#a9b4c6; font-size: 0.95rem; }
+    video { width: 100%; border-radius: 12px; border:1px solid #1b2433; background:#000; }
+    .row { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+    .field { flex: 1 1 180px; }
+    .field label { display:block; font-weight:600; margin:10px 0 6px; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 10px 12px; border-radius: 10px; border:1px solid #243044; background:#0e141d; color:#eef2f6; }
+    input[type="range"] { width: 100%; }
+    .btn { appearance:none; border:0; padding: 12px 18px; border-radius: 12px; background:#4b8bff; color:white; font-weight:700; cursor:pointer; box-shadow: 0 6px 18px rgba(75,139,255,0.25); }
+    .btn[disabled] { background:#33415c; cursor:not-allowed; box-shadow:none; }
+    .pill { display:inline-block; border:1px solid #27406a; padding:4px 10px; border-radius:999px; font-size:0.9rem; color:#c3d2f2; }
+    .center { text-align:center; }
+    .hr { border-top:1px dashed #243044; margin:16px 0; }
+    .success { background:#0e2a14; border:1px solid #275f3a; color:#bff0c9; padding:12px; border-radius:10px; }
+    .error { background:#2a1212; border:1px solid #5f2727; color:#f0bfbf; padding:12px; border-radius:10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="row" style="justify-content: space-between; align-items: baseline;">
+        <h1>צפייה בסרטון ומתן ציון</h1>
+        <span id="videoLabel" class="pill"></span>
+      </div>
+      <p class="muted">צפו בסרטון עד הסוף. הכפתור להגשת הציון ייפתח רק כאשר הצפייה הסתיימה.</p>
 
-  // ❶ תחילי לבדיקה עם סרטון דוגמה תקין (אחרי שעובד—תשני לכתובת שלך)
-  // דוגמת W3Schools: קובץ mp4 פתוח לכולם
-  const videoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
+      <video id="vid" controls playsinline controlsList="nodownload noremoteplayback">
+        הדפדפן שלך לא תומך בווידאו.
+      </video>
 
-  // אם תרצי לאפשר pid מה-URL, השאירי את שתי השורות; אם לא, אפשר: const initialPid = '';
-  const params = new URLSearchParams(location.search);
-  const initialPid = params.get('pid') || '';
+      <div class="hr"></div>
 
-  const vid = document.getElementById('vid');
-  const participantInput = document.getElementById('participant');
-  const rating = document.getElementById('rating');
-  const ratingVal = document.getElementById('ratingVal');
-  const submitBtn = document.getElementById('submitBtn');
-  const msg = document.getElementById('msg');
-  const videoLabel = document.getElementById('videoLabel');
+      <div class="row">
+        <div class="field">
+          <label for="participant">מזהה נבדק (לא חובה)</label>
+          <input id="participant" type="text" placeholder="למשל: S01" />
+        </div>
+        <div class="field">
+          <label for="rating">ציון: <span id="ratingVal">5</span></label>
+          <input id="rating" type="range" min="1" max="10" step="1" value="5" />
+        </div>
+      </div>
 
-  // טוענים את הווידאו ומציגים שם קובץ
-  vid.preload = "metadata";
-  vid.src = videoUrl;
-  try { videoLabel.textContent = new URL(videoUrl).pathname.split('/').pop(); } catch { videoLabel.textContent = videoUrl; }
-  participantInput.value = initialPid;
+      <div style="margin-top: 14px;" class="row">
+        <button id="submitBtn" class="btn" disabled>שליחת ציון</button>
+      </div>
 
-  // עדכון תצוגת הציון
-  rating.addEventListener('input', () => { ratingVal.textContent = rating.value; });
+      <div id="msg" style="margin-top:14px"></div>
+    </div>
 
-  // האזנה לשגיאות וידאו כדי לדעת אם הבעיה היא בקובץ/כתובת
-  vid.addEventListener('error', (e) => {
-    console.error('Video error', e, vid.error);
-    msg.innerHTML = '<div class="error">שגיאה בטעינת הווידאו. בדקי שהקישור נכון ושזה MP4 תקין.</div>';
-  });
+    <p class="muted center" style="margin-top:12px">צפייה בתוצאות: <a href="admin.html" style="color:#8fb3ff">admin.html</a></p>
+  </div>
 
-  // כאשר הסרטון מוכן לניגון
-  vid.addEventListener('loadeddata', () => {
-    console.log('Video loaded');
-  });
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      // === מפתחות Supabase ===
+      const SUPABASE_URL = 'https://dbintxdkurajdgimcdeb.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiaW50eGRrdXJhamRnaW1jZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc1NTAsImV4cCI6MjA3NDEwMzU1MH0.usRUg5lTw96BaEydMV9wl8vtuZ3-e0MZA1UUMgh5YaA';
+      const RATINGS_TABLE = 'ratings';
 
-  // לאפשר שליחה רק כשהסרטון נגמר
-  let videoCompleted = false;
-  vid.addEventListener('ended', () => {
-    videoCompleted = true;
-    submitBtn.disabled = false;
-  });
+      // להתחיל עם סרטון בדיקה תקין; אחרי שעובד, להחליף לכתובת שלך
+      const videoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
 
-  async function supabaseInsert(row) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify(row)
+      const params = new URLSearchParams(location.search);
+      const initialPid = params.get('pid') || '';
+
+      const vid = document.getElementById('vid');
+      const participantInput = document.getElementById('participant');
+      const rating = document.getElementById('rating');
+      const ratingVal = document.getElementById('ratingVal');
+      const submitBtn = document.getElementById('submitBtn');
+      const msg = document.getElementById('msg');
+      const videoLabel = document.getElementById('videoLabel');
+
+      // טוענים את הוידאו
+      vid.preload = "metadata";
+      vid.src = videoUrl;
+      try { videoLabel.textContent = new URL(videoUrl).pathname.split('/').pop(); } catch { videoLabel.textContent = videoUrl; }
+
+      participantInput.value = initialPid;
+      rating.addEventListener('input', () => { ratingVal.textContent = rating.value; });
+
+      vid.addEventListener('error', () => {
+        msg.innerHTML = '<div class="error">שגיאה בטעינת הווידאו. בדקי שהקישור נכון ושזה MP4 תקין.</div>';
+      });
+
+      let videoCompleted = false;
+      vid.addEventListener('ended', () => { videoCompleted = true; submitBtn.disabled = false; });
+
+      async function supabaseInsert(row) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify(row)
+        });
+        if (!res.ok) { throw new Error(await res.text() || 'שגיאה בשמירה ל-Supabase'); }
+        return res.json();
+      }
+
+      submitBtn.addEventListener('click', async () => {
+        if (!videoCompleted) { msg.innerHTML = '<div class="error">יש להשלים צפייה בסרטון לפני שליחה.</div>'; return; }
+        submitBtn.disabled = true; msg.textContent = '';
+        try {
+          const payload = {
+            participant_id: participantInput.value.trim() || null,
+            video_url: videoUrl,
+            rating: parseInt(rating.value, 10),
+            user_agent: navigator.userAgent.slice(0, 500),
+            meta: { pageHref: location.href, endedOnce: true }
+          };
+          await supabaseInsert(payload);
+          msg.innerHTML = '<div class="success">הציון נשמר. תודה רבה!</div>';
+        } catch (e) {
+          msg.innerHTML = `<div class="error">${e.message}</div>`;
+          submitBtn.disabled = false;
+        }
+      });
     });
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(t || 'שגיאה בשמירה ל-Supabase');
-    }
-    return res.json();
-  }
-
-  submitBtn.addEventListener('click', async () => {
-    if (!videoCompleted) {
-      msg.innerHTML = '<div class="error">יש להשלים צפייה בסרטון לפני שליחה.</div>';
-      return;
-    }
-    submitBtn.disabled = true;
-    msg.textContent = '';
-
-    try {
-      const payload = {
-        participant_id: participantInput.value.trim() || null,
-        video_url: videoUrl,
-        rating: parseInt(rating.value, 10),
-        user_agent: navigator.userAgent.slice(0, 500),
-        meta: { pageHref: location.href, endedOnce: true }
-      };
-      await supabaseInsert(payload);
-      msg.innerHTML = '<div class="success">הציון נשמר. תודה רבה!</div>';
-    } catch (e) {
-      msg.innerHTML = `<div class="error">${e.message}</div>`;
-      submitBtn.disabled = false;
-    }
-  });
-</script>
+  </script>
+</body>
+</html>
