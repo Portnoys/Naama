@@ -14,10 +14,9 @@
     .field { flex:1 1 200px; }
     .field label { display:block; font-weight:600; margin:10px 0 6px; }
     input[type="text"]{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid #243044; background:#0e141d; color:#eef2f6; }
-    input[type="range"] { width:100%; height:6px; border-radius:8px; -webkit-appearance: none; appearance: none; }
-    /* בסיס למסילה; הצבע בפועל מתעדכן דינמית ב-JS כדי ליצור "זנב" */
-    input[type="range"]::-webkit-slider-runnable-track { height:6px; border-radius:8px; background:#243044; }
-    input[type="range"]::-moz-range-track { height:6px; border-radius:8px; background:#243044; }
+    input[type="range"] { width:100%; height:6px; border-radius:8px; -webkit-appearance: none; appearance: none; background:#243044; }
+    input[type="range"]::-webkit-slider-runnable-track { height:6px; border-radius:8px; }
+    input[type="range"]::-moz-range-track { height:6px; border-radius:8px; }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
       width:20px; height:20px; border-radius:50%;
@@ -36,10 +35,8 @@
   <div class="card">
     <div class="row" style="justify-content:space-between;align-items:baseline;">
       <h1 id="title">צפייה בסרטון 1</h1>
-      <!-- הוסר שם הקובץ -->
     </div>
 
-    <!-- מספר נבדק (מופיע לפני סרטון 1 בלבד) -->
     <div id="pidBlock" class="row" style="margin-top:8px;">
       <div class="field" style="min-width:220px;">
         <label for="participant">מספר נבדק</label>
@@ -52,7 +49,6 @@
 
     <p class="muted" style="margin-top:8px">יש לצפות בסרטון עד הסוף. לאחר שליחת הציון עוברים אוטומטית לסרטון הבא.</p>
 
-    <!-- כפתור הפעלה/הרצה מחדש -->
     <div class="row" style="margin:8px 0">
       <button id="playBtn" class="btn" disabled>הרץ סרטון</button>
     </div>
@@ -117,44 +113,6 @@
         const v = Math.min(10, Math.max(0, Number(val)));
         ratingRange.value = v.toFixed(1);
         ratingVal.textContent = v.toFixed(1);
-        updateRangeBackground(); // מעדכן את ה"זנב"
-      }
-
-      // "זנב" ל-VAS: נשמור היסטוריה קצרה של הערכים האחרונים
-      const historyVals = [];        // נשמור עד 6 דגימות אחרונות
-      const MAX_HISTORY = 6;
-      function updateRangeBackground() {
-        const max = 10;
-        const last = Number(ratingRange.value);
-        // הוספת הדגימה האחרונה להיסטוריה
-        historyVals.push(last);
-        if (historyVals.length > MAX_HISTORY) historyVals.shift();
-
-        // בסיס המסילה
-        const base = '#243044';
-
-        // נבנה גרדיאנט שמתחזק בהדרגה עד הערך האחרון (tail),
-        // ובנוסף "סימוני" שקיפות קטנים בנקודות ההיסטוריות.
-        const plast = (last / max) * 100;
-
-        // חלק ה-Tail: עולה בשקיפות מ-0 עד לערך האחרון
-        const tail = `rgba(75,139,255,0.15) 0%, rgba(75,139,255,0.35) ${Math.max(0, plast-20)}%, rgba(75,139,255,0.8) ${plast}%`;
-
-        // "טיקים" קלים עבור דגימות היסטוריות (למעט האחרונה שכבר מכוסה בטייל)
-        const ticks = historyVals.slice(0, -1).map((h, i) => {
-          const p = (h / max) * 100;
-          const a = 0.15 + (i / MAX_HISTORY) * 0.25; // ישן=בהיר יותר
-          // נייצר פס דק סביב האחוז
-          const p1 = Math.max(0, p - 0.5), p2 = Math.min(100, p + 0.5);
-          return `rgba(75,139,255,${a}) ${p1}%, rgba(75,139,255,${a}) ${p2}%`;
-        }).join(',');
-
-        // מרכיבים: תחילה בסיס, מעליו tail, ואז ticks דקיקים
-        let bg = `linear-gradient(to right, ${base} 0%, ${base} 100%)`;
-        bg += `, linear-gradient(to right, ${tail}, ${base} ${plast}%, ${base} 100%)`;
-        if (ticks) bg += `, linear-gradient(to right, ${ticks})`;
-
-        ratingRange.style.background = bg;
       }
 
       function loadVideo(i) {
@@ -173,6 +131,11 @@
           playBtn.disabled = false;
         }
       }
+
+      // עדכון הצגת הערך בזמן גרירה
+      ratingRange.addEventListener('input', () => {
+        ratingVal.textContent = Number(ratingRange.value).toFixed(1);
+      });
 
       // אישור מספר נבדק
       confirmPidBtn.addEventListener('click', () => {
@@ -238,7 +201,7 @@
       });
 
       // התחלה
-      setRating(5.0);     // מאתחל גם את הרקע עם "זנב" התחלתי
+      setRating(5.0);
       loadVideo(currentIndex);
     });
   </script>
