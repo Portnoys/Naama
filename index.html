@@ -75,12 +75,10 @@
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      // ===== Supabase =====
       const SUPABASE_URL = 'https://dbintxdkurajdgimcdeb.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiaW50eGRrdXJhamRnaW1jZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc1NTAsImV4cCI6MjA3NDEwMzU1MH0.usRUg5lTw96BaEydMV9wl8vtuZ3-e0MZA1UUMgh5YaA';
       const RATINGS_TABLE = 'ratings';
 
-      // ===== סרטונים =====
       const VIDEO_URLS = [
         'https://portnoys.github.io/Naama/7.mp4',
         'https://portnoys.github.io/Naama/6.mp4',
@@ -88,7 +86,6 @@
         'https://portnoys.github.io/Naama/4.mp4'
       ];
 
-      // ===== DOM =====
       const titleEl = document.getElementById('title');
       const pidBlock = document.getElementById('pidBlock');
       const participantInput = document.getElementById('participant');
@@ -100,7 +97,6 @@
       const submitBtn = document.getElementById('submitBtn');
       const msg = document.getElementById('msg');
 
-      // התחלה נקייה — לא טוענים PID קודם
       sessionStorage.removeItem('participant_id');
 
       let participantId = '';
@@ -115,6 +111,13 @@
         ratingVal.textContent = v.toFixed(1);
       }
 
+      // עדכון הערך בזמן הזזה
+      ['input','change'].forEach(ev => {
+        ratingRange.addEventListener(ev, () => {
+          ratingVal.textContent = Number(ratingRange.value).toFixed(1);
+        });
+      });
+
       function loadVideo(i) {
         const url = VIDEO_URLS[i];
         setTitle(i);
@@ -125,39 +128,30 @@
 
         if (i === 0) {
           pidBlock.style.display = '';
-          playBtn.disabled = true;   // חסום עד שמספר נבדק מאושר
+          playBtn.disabled = true;
         } else {
           pidBlock.style.display = 'none';
           playBtn.disabled = false;
         }
       }
 
-      // עדכון הצגת הערך בזמן גרירה
-      ratingRange.addEventListener('input', () => {
-        ratingVal.textContent = Number(ratingRange.value).toFixed(1);
-      });
-
-      // אישור מספר נבדק
       confirmPidBtn.addEventListener('click', () => {
         const v = (participantInput.value || '').trim();
-        if (!v) return; // בלי הודעות למשתמש
+        if (!v) return;
         participantId = v;
         sessionStorage.setItem('participant_id', participantId);
         pidBlock.style.display = 'none';
         playBtn.disabled = false;
       });
 
-      // כפתור הרצה/הרצה מחדש
       playBtn.addEventListener('click', () => {
         vid.currentTime = 0;
         vid.play().catch(()=>{});
         playBtn.textContent = 'הרץ שוב';
       });
 
-      // פתיחת שליחה רק אחרי סיום הסרטון
       vid.addEventListener('ended', () => { videoCompleted = true; submitBtn.disabled = false; });
 
-      // שמירה ל-Supabase (שקטה)
       async function supabaseInsert(row) {
         try {
           const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
@@ -171,7 +165,7 @@
             body: JSON.stringify(row)
           });
           if (!res.ok) return;
-        } catch { /* שקט */ }
+        } catch { }
       }
 
       submitBtn.addEventListener('click', async () => {
@@ -200,7 +194,6 @@
         }
       });
 
-      // התחלה
       setRating(5.0);
       loadVideo(currentIndex);
     });
