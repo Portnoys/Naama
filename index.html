@@ -14,9 +14,27 @@
     .field { flex:1 1 200px; }
     .field label { display:block; font-weight:600; margin:10px 0 6px; }
     input[type="text"]{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid #243044; background:#0e141d; color:#eef2f6; }
-    input[type="range"] { width:100%; height:6px; border-radius:8px; -webkit-appearance: none; appearance: none; background:#243044; }
-    input[type="range"]::-webkit-slider-runnable-track { height:6px; border-radius:8px; }
-    input[type="range"]::-moz-range-track { height:6px; border-radius:8px; }
+
+    /* --- VAS: פס בשלושה שלישים + כותרות --- */
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 8px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: linear-gradient(
+        to right,
+        #e74c3c 0%,
+        #e74c3c 33.333%,
+        #f4c430 33.333%,
+        #f4c430 66.666%,
+        #2ecc71 66.666%,
+        #2ecc71 100%
+      );
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-runnable-track { height:6px; border-radius:8px; background: transparent; }
+    input[type="range"]::-moz-range-track { height:6px; border-radius:8px; background: transparent; }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
       width:20px; height:20px; border-radius:50%;
@@ -26,16 +44,23 @@
       width:20px; height:20px; border-radius:50%;
       background:#fff; border:2px solid #4b8bff; cursor:pointer;
     }
+    .vas-labels {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 6px;
+      font-size: .9rem;
+      color: #c9d4e6;
+      text-align: center;
+    }
+    .vas-labels span { opacity: .95; }
+
     .btn { appearance:none; border:0; padding:12px 18px; border-radius:12px; background:#4b8bff; color:#fff; font-weight:700; cursor:pointer; }
     .btn[disabled] { background:#33415c; cursor:not-allowed; }
     .hr { border-top:1px dashed #243044; margin:16px 0; }
-    #ratingVal {
-  font-size: 2rem;   /* מגדיל את המספר */
-  font-weight: 700;    /* אופציונלי: הופך לעבה יותר */
-  color: #ffd166;      /* אופציונלי: משנה צבע */
-  text-align: center;
-}
 
+    /* המספר הגדול של ה-VAS */
+    #ratingVal { font-size: 2rem; font-weight: 700; color: #ffd166; text-align: center; }
   </style>
 </head>
 <body>
@@ -44,6 +69,7 @@
       <h1 id="title">צפייה בסרטון 1</h1>
     </div>
 
+    <!-- מספר נבדק (מוצג רק לפני סרטון 1) -->
     <div id="pidBlock" class="row" style="margin-top:8px;">
       <div class="field" style="min-width:220px;">
         <label for="participant">מספר נבדק</label>
@@ -66,10 +92,18 @@
 
     <div class="hr"></div>
 
+    <!-- בלוק ה-VAS המעודכן -->
     <div class="row">
       <div class="field" style="min-width:220px;">
         <label for="ratingRange">VAS ציון: <span id="ratingVal">5.0</span></label>
+
         <input id="ratingRange" type="range" min="0" max="10" step="0.1" value="5.0" />
+
+        <div class="vas-labels" aria-hidden="true">
+          <span>גרוע</span>
+          <span>בינוני</span>
+          <span>טוב</span>
+        </div>
       </div>
     </div>
 
@@ -82,10 +116,12 @@
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
+      // === Supabase ===
       const SUPABASE_URL = 'https://dbintxdkurajdgimcdeb.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiaW50eGRrdXJhamRnaW1jZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc1NTAsImV4cCI6MjA3NDEwMzU1MH0.usRUg5lTw96BaEydMV9wl8vtuZ3-e0MZA1UUMgh5YaA';
       const RATINGS_TABLE = 'ratings';
 
+      // רשימת הסרטונים
       const VIDEO_URLS = [
         'https://portnoys.github.io/Naama/7.mp4',
         'https://portnoys.github.io/Naama/6.mp4',
@@ -93,6 +129,7 @@
         'https://portnoys.github.io/Naama/4.mp4'
       ];
 
+      // DOM
       const titleEl = document.getElementById('title');
       const pidBlock = document.getElementById('pidBlock');
       const participantInput = document.getElementById('participant');
@@ -104,6 +141,7 @@
       const submitBtn = document.getElementById('submitBtn');
       const msg = document.getElementById('msg');
 
+      // התחלה חדשה: אל תאחסני PID קודם
       sessionStorage.removeItem('participant_id');
 
       let participantId = '';
@@ -112,17 +150,22 @@
 
       function setTitle(i){ titleEl.textContent = `צפייה בסרטון ${i+1}`; }
       function resetPlayButton(){ playBtn.textContent = 'הרץ סרטון'; }
+
+      // עדכון מספר ותצבעה לפי שלישיות
       function setRating(val){
         const v = Math.min(10, Math.max(0, Number(val)));
         ratingRange.value = v.toFixed(1);
         ratingVal.textContent = v.toFixed(1);
+        let color;
+        if (v <= 3.333)      color = '#e74c3c'; // גרוע
+        else if (v <= 6.666) color = '#f4c430'; // בינוני
+        else                 color = '#2ecc71'; // טוב
+        ratingVal.style.color = color;
       }
 
       // עדכון הערך בזמן הזזה
       ['input','change'].forEach(ev => {
-        ratingRange.addEventListener(ev, () => {
-          ratingVal.textContent = Number(ratingRange.value).toFixed(1);
-        });
+        ratingRange.addEventListener(ev, () => setRating(ratingRange.value));
       });
 
       function loadVideo(i) {
@@ -135,13 +178,14 @@
 
         if (i === 0) {
           pidBlock.style.display = '';
-          playBtn.disabled = true;
+          playBtn.disabled = true;   // אין ניגון עד שמאשרים מספר נבדק
         } else {
           pidBlock.style.display = 'none';
           playBtn.disabled = false;
         }
       }
 
+      // אישור מספר נבדק
       confirmPidBtn.addEventListener('click', () => {
         const v = (participantInput.value || '').trim();
         if (!v) return;
@@ -151,14 +195,17 @@
         playBtn.disabled = false;
       });
 
+      // כפתור ניגון/ניגון מחדש
       playBtn.addEventListener('click', () => {
         vid.currentTime = 0;
         vid.play().catch(()=>{});
         playBtn.textContent = 'הרץ שוב';
       });
 
+      // פתיחת שליחה רק אחרי שהסתיים
       vid.addEventListener('ended', () => { videoCompleted = true; submitBtn.disabled = false; });
 
+      // שמירה ל-Supabase
       async function supabaseInsert(row) {
         try {
           const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
@@ -175,6 +222,7 @@
         } catch { }
       }
 
+      // שליחת ציון ומעבר לסרטון הבא
       submitBtn.addEventListener('click', async () => {
         if (currentIndex === 0 && !participantId) return;
         if (!videoCompleted) return;
@@ -198,9 +246,11 @@
         } else {
           submitBtn.disabled = true;
           playBtn.disabled = true;
+          msg.textContent = 'תודה! סיימת את כל הסרטונים.';
         }
       });
 
+      // init
       setRating(5.0);
       loadVideo(currentIndex);
     });
