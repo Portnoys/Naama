@@ -166,10 +166,10 @@
 
       // ----- סרטוני אימון עם משוב (12) -----
       const FEEDBACK_VIDEOS = [
-        { url: 'https://portnoys.github.io/Naama/אימון 1 עם משוב 8.0.mp4',  score: 8.0 },
+        { url: 'https://portnoys.github.io/Naama/8.0 אימון 1 עם משוב.mp4',  score: 8.0 },
         { url: 'https://portnoys.github.io/Naama/1.2 אימון 2 עם משוב.mp4',  score: 1.2 },
-        { url: 'https://portnoys.github.io/Naama/אימון 3 עם משוב 4.9.mp4',  score: 4.9 },
-        { url: 'https://portnoys.github.io/Naama/אימון 4 עם משוב 9.9.mp4',  score: 9.9 },
+        { url: 'https://portnoys.github.io/Naama/4.9 אימון 3 עם משוב.mp4',  score: 4.9 },
+        { url: 'https://portnoys.github.io/Naama/9.9 אימון 4 עם משוב.mp4',  score: 9.9 },
         { url: 'https://portnoys.github.io/Naama/2.5 אימון 5 עם משוב.mp4',  score: 2.5 },
         { url: 'https://portnoys.github.io/Naama/6.1 אימון 6 עם משוב.mp4',  score: 6.1 },
         { url: 'https://portnoys.github.io/Naama/4.5 אימון 7 עם משוב.mp4',  score: 4.5 },
@@ -179,7 +179,6 @@
         { url: 'https://portnoys.github.io/Naama/5.5 אימון 11 עם משוב.mp4', score: 5.5 },
         { url: 'https://portnoys.github.io/Naama/2.8 אימון 12 עם משוב.mp4', score: 2.8 }
       ];
-
 
       // ----- סרטוני ניסוי (העיקריים, ניתנים לדרוג חופשי) -----
       const MAIN_VIDEOS = [
@@ -212,6 +211,7 @@
       let mainIndex = 0;
       let videoCompleted = false;
       let feedbackReveal = false;  // האם כבר הוצג הציון האמיתי באימון עם משוב
+      let vasChanged = false;      // הנבדק הזיז את ה-VAS (משמש בשלב האימון עם משוב)
 
       function setTitleLearning(i) {
         titleEl.textContent = `סרטון למידה ${i + 1} מתוך ${LEARNING_VIDEOS.length}`;
@@ -238,11 +238,19 @@
         ratingVal.style.color = color;
       }
 
-      // עדכון הערך בזמן הזזה (בכל שלב שהוא לא למידה ללא שליטה)
+      // עדכון הערך בזמן הזזה
       ['input','change'].forEach(ev => {
         ratingRange.addEventListener(ev, () => {
           if (phase === 'feedback' || phase === 'main') {
             setRating(ratingRange.value);
+          }
+          // בשלב האימון עם משוב – סימון שהנבדק שינה את ה-VAS
+          if (phase === 'feedback' && !vasChanged) {
+            vasChanged = true;
+            // אם הסרטון כבר נגמר – אפשר לפתוח את כפתור ההמשך
+            if (videoCompleted && !feedbackReveal) {
+              submitBtn.disabled = false;
+            }
           }
         });
       });
@@ -253,6 +261,7 @@
         resetPlayButton();
         msg.innerHTML = '';
         feedbackReveal = false;
+        vasChanged = false;
 
         if (phase === 'learning') {
           const vobj = LEARNING_VIDEOS[learnIndex];
@@ -313,7 +322,16 @@
       // פתיחת כפתור המשך/שליחה רק אחרי שהסרטון נגמר
       vid.addEventListener('ended', () => {
         videoCompleted = true;
-        submitBtn.disabled = false;
+
+        if (phase === 'feedback') {
+          // באימון עם משוב – צריך גם שה-VAS הוזז
+          if (vasChanged && !feedbackReveal) {
+            submitBtn.disabled = false;
+          }
+        } else {
+          // בשלבים האחרים – כמו קודם
+          submitBtn.disabled = false;
+        }
       });
 
       // שמירה ל-Supabase
