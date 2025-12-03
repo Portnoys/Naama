@@ -94,7 +94,21 @@
   </style>
 </head>
 <body>
-  <div class="card">
+
+  <!-- שקופית פתיחה חדשה -->
+  <div id="introScreen" class="card">
+    <h1>הנחיות לפתיחת הניסוי</h1>
+    <p class="muted" style="margin-top:8px;font-size:1.05rem;">
+      אנא צפו בסרטון זה מתחילתו עד סופו.
+      לאחר הלחיצה על הכפתור הסרטון יופיע במסך מלא, ובסיומו תועברו אוטומטית לשלב הבא.
+    </p>
+    <div style="margin-top:18px;">
+      <button id="startIntroBtn" class="btn">אישור</button>
+    </div>
+  </div>
+
+  <!-- המסך המקורי של הלמידה/אימון/ניסוי -->
+  <div id="mainCard" class="card" style="display:none;">
     <div class="row" style="justify-content:space-between;align-items:baseline;">
       <h1 id="title">צפייה בסרטון</h1>
     </div>
@@ -154,6 +168,9 @@
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiaW50eGRrdXJhamRnaW1jZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc1NTAsImV4cCI6MjA3NDEwMzU1MH0.usRUg5lTw96BaEydMV9wl8vtuZ3-e0MZA1UUMgh5YaA';
       const RATINGS_TABLE = 'ratings';
 
+      // סרטון פתיחה
+      const INTRO_VIDEO = 'https://portnoys.github.io/Naama/Lecture_research.mp4'; // עדכני לנתיב הנכון במידת הצורך
+
       // ----- סרטוני למידה (6) עם ציון קבוע -----
       const LEARNING_VIDEOS = [
         { url: 'https://portnoys.github.io/Naama/סרט 1 למידה 2.8.mp4',  score: 2.8 },
@@ -189,23 +206,26 @@
       ];
 
       // DOM
-      const titleEl        = document.getElementById('title');
-      const pidBlock       = document.getElementById('pidBlock');
+      const introScreen     = document.getElementById('introScreen');
+      const startIntroBtn   = document.getElementById('startIntroBtn');
+      const mainCard        = document.getElementById('mainCard');
+      const titleEl         = document.getElementById('title');
+      const pidBlock        = document.getElementById('pidBlock');
       const participantInput = document.getElementById('participant');
-      const confirmPidBtn  = document.getElementById('confirmPidBtn');
-      const playBtn        = document.getElementById('playBtn');
-      const vid            = document.getElementById('vid');
-      const ratingRange    = document.getElementById('ratingRange');
-      const ratingVal      = document.getElementById('ratingVal');
-      const submitBtn      = document.getElementById('submitBtn');
-      const msg            = document.getElementById('msg');
+      const confirmPidBtn   = document.getElementById('confirmPidBtn');
+      const playBtn         = document.getElementById('playBtn');
+      const vid             = document.getElementById('vid');
+      const ratingRange     = document.getElementById('ratingRange');
+      const ratingVal       = document.getElementById('ratingVal');
+      const submitBtn       = document.getElementById('submitBtn');
+      const msg             = document.getElementById('msg');
 
       // התחלה חדשה: אל תאחסני PID קודם
       sessionStorage.removeItem('participant_id');
 
       let participantId = '';
-      // שלבים: 'learning' -> 'feedback' -> 'main'
-      let phase = 'learning';
+      // שלבים: 'intro' -> 'learning' -> 'feedback' -> 'main'
+      let phase = 'intro';
       let learnIndex = 0;
       let feedbackIndex = 0;
       let mainIndex = 0;
@@ -302,6 +322,38 @@
         }
       }
 
+      // שקופית פתיחה – ניגון סרט ההרצאה במסך מלא
+      startIntroBtn.addEventListener('click', () => {
+        // מסתירים את שקופית הפתיחה ומראים את הכרטיס הראשי
+        introScreen.style.display = 'none';
+        mainCard.style.display = '';
+
+        phase = 'intro';
+        videoCompleted = false;
+        msg.innerHTML = '';
+        submitBtn.disabled = true;
+        playBtn.disabled = true;      // אי אפשר להריץ סרטון בשלב הזה
+        ratingRange.disabled = true;  // אין VAS בשלב ההרצאה
+        pidBlock.style.display = 'none';
+
+        vid.src = INTRO_VIDEO;
+        vid.currentTime = 0;
+
+        // ניגון במסך מלא
+        const playPromise = vid.play();
+        if (playPromise && playPromise.catch) {
+          playPromise.catch(() => {});
+        }
+
+        if (vid.requestFullscreen) {
+          vid.requestFullscreen().catch(() => {});
+        } else if (vid.webkitRequestFullscreen) {
+          vid.webkitRequestFullscreen();
+        } else if (vid.msRequestFullscreen) {
+          vid.msRequestFullscreen();
+        }
+      });
+
       // אישור מספר נבדק
       confirmPidBtn.addEventListener('click', () => {
         const v = (participantInput.value || '').trim();
@@ -322,6 +374,19 @@
       // פתיחת כפתור המשך/שליחה רק אחרי שהסרטון נגמר
       vid.addEventListener('ended', () => {
         videoCompleted = true;
+
+        // סיום סרט ההרצאה (שקופית פתיחה)
+        if (phase === 'intro') {
+          if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          }
+          // מעבר לשלב הלמידה הסרטון הראשון (כמו שהמסך התחיל לפני השינוי)
+          phase = 'learning';
+          learnIndex = 0;
+          ratingRange.disabled = true;
+          loadCurrentVideo();
+          return;
+        }
 
         if (phase === 'feedback') {
           // באימון עם משוב – צריך גם שה-VAS הוזז
@@ -459,9 +524,8 @@
         }
       });
 
-      // init
+      // init – רק מכוונים ערך ראשוני ל-VAS (המסך הראשון האמיתי יבוא אחרי סרט ההרצאה)
       setRating(5.0);
-      loadCurrentVideo();
     });
   </script>
 </body>
