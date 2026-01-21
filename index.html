@@ -5,115 +5,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>צפייה בסרטון — ניסוי וידאו</title>
   <style>
-    body {
+    body{
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       margin:0; padding:20px;
       background:#0b0f14; color:#eef2f6;
     }
 
-    /* הרחבה כדי לנצל את כל הרוחב שיש במסך */
-    .card {
+    /* לנצל רוחב מסך */
+    .card{
       max-width: 1400px;
       margin:0 auto;
       background:#111823; border:1px solid #1b2433;
       border-radius:16px; padding:20px;
     }
 
-    h1 { margin:0 0 6px; font-size: 2rem; }
-    .muted { color:#a9b4c6; font-size:1.5rem; }
+    h1{ margin:0 0 6px; font-size: 2rem; }
+    .muted{ color:#a9b4c6; font-size:1.5rem; }
 
-    /* וידאו - כל וידאו ימלא את עמודת הווידאו ושמור על יחס 16:9 */
-    video {
+    video{
       width:100%;
       border-radius:12px;
       border:1px solid #1b2433;
       background:#000;
       aspect-ratio: 16 / 9;
-      height: auto;
+      height:auto;
       display:block;
     }
 
-    .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    .field { flex:1 1 200px; }
-    .field label { display:block; font-weight:600; margin:10px 0 6px; }
+    .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .field{ flex:1 1 200px; }
+    .field label{ display:block; font-weight:600; margin:10px 0 6px; }
     input[type="text"]{
       width:100%; padding:10px 12px; border-radius:10px;
       border:1px solid #243044; background:#0e141d; color:#eef2f6;
     }
 
-    input[type="range"] {
-      width: 100%;
-      height: 6px;
-      border-radius: 8px;
-      -webkit-appearance: none;
-      appearance: none;
-      direction: ltr;
-      background: linear-gradient(
-        to right,
-        #e74c3c 0%,
-        #e74c3c 33.333%,
-        #f4c430 33.333%,
-        #f4c430 66.666%,
-        #2ecc71 66.666%,
-        #2ecc71 100%
-      );
-      outline: none;
-    }
-    input[type="range"]::-webkit-slider-runnable-track { height:6px; border-radius:8px; background: transparent; }
-    input[type="range"]::-moz-range-track { height:6px; border-radius:8px; background: transparent; }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none; appearance: none;
-      width:20px; height:20px; border-radius:50%;
-      background:#fff; border:2px solid #4b8bff; margin-top:-7px; cursor:pointer;
-    }
-    input[type="range"]::-moz-range-thumb {
-      width:20px; height:20px; border-radius:50%;
-      background:#fff; border:2px solid #4b8bff; cursor:pointer;
-    }
-
-    .vas-labels {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      margin-top: 6px;
-      font-size: 1.0rem;
-      color: #c9d4e6;
-      text-align: center;
-    }
-    .vas-labels span { opacity: .95; }
-
-    .btn {
+    .btn{
       appearance:none; border:0; padding:12px 18px;
       border-radius:12px; background:#4b8bff; color:#fff;
       font-weight:700; cursor:pointer;
     }
-    .btn[disabled] { background:#33415c; cursor:not-allowed; }
+    .btn[disabled]{ background:#33415c; cursor:not-allowed; }
 
-    .hr { border-top:1px dashed #243044; margin:16px 0; }
+    .hr{ border-top:1px dashed #243044; margin:16px 0; }
 
-    #ratingVal {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #ffd166;
-      text-align: center;
-    }
-
-    /* שני סרטונים זה לצד זה — שומרים על גודל המקורי של הווידאו הראשי */
+    /* --- שני סרטונים --- */
     .videos-wrap{
       display:flex;
       gap:12px;
       align-items:flex-start;
-      flex-wrap: nowrap;       /* לא לרדת שורה */
-      overflow-x: auto;        /* גלילה אופקית במידת הצורך */
+      flex-wrap: nowrap;
+      overflow-x: auto;
       overflow-y: hidden;
       padding-bottom: 6px;
     }
     .video-col{
-      flex: 0 0 640px;         /* רוחב לא קטן כדי שאחד לא יקטן */
+      flex: 0 0 640px;
       min-width: 640px;
     }
     @media (max-width: 720px){
-      .video-col{ flex-basis: 92vw; min-width: 92vw; } /* מובייל */
+      .video-col{ flex-basis: 92vw; min-width: 92vw; }
     }
 
     .side-title{
@@ -124,24 +75,73 @@
       text-align:center;
     }
 
-    /* מרכז כפתורים במסך הראשון */
-    .center-row{
-      justify-content: center;
-      width: 100%;
+    .center-row{ justify-content:center; width:100%; }
+
+    /* --- VAS: להקטין בערך לחצי רוחב + טקסטים קטנים יותר --- */
+    .vas-wrap{
+      max-width: 420px;          /* בערך חצי */
+      margin: 0 auto;
+    }
+    .vas-wrap label{
+      font-size: 1.05rem;
+    }
+    #ratingVal{
+      font-size: 1.35rem;
+      font-weight: 800;
+      color:#ffd166;
+    }
+
+    input[type="range"]{
+      width:100%;
+      height: 6px;
+      border-radius: 8px;
+      -webkit-appearance:none;
+      appearance:none;
+      direction:ltr;
+      background: linear-gradient(
+        to right,
+        #e74c3c 0%,
+        #e74c3c 33.333%,
+        #f4c430 33.333%,
+        #f4c430 66.666%,
+        #2ecc71 66.666%,
+        #2ecc71 100%
+      );
+      outline:none;
+    }
+    input[type="range"]::-webkit-slider-runnable-track{ height:6px; border-radius:8px; background:transparent; }
+    input[type="range"]::-moz-range-track{ height:6px; border-radius:8px; background:transparent; }
+    input[type="range"]::-webkit-slider-thumb{
+      -webkit-appearance:none; appearance:none;
+      width:18px; height:18px; border-radius:50%;
+      background:#fff; border:2px solid #4b8bff; margin-top:-6px; cursor:pointer;
+    }
+    input[type="range"]::-moz-range-thumb{
+      width:18px; height:18px; border-radius:50%;
+      background:#fff; border:2px solid #4b8bff; cursor:pointer;
+    }
+
+    .vas-labels{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:8px;
+      margin-top:6px;
+      font-size:0.95rem;
+      color:#c9d4e6;
+      text-align:center;
     }
   </style>
 </head>
 <body>
 
-  <!-- שקופית פתיחה -->
+  <!-- מסך פתיחה -->
   <div id="introScreen" class="card">
     <h1>הנחיות לפתיחת הניסוי</h1>
-    <p class="muted" style="margin-top:8px;font-size:3.2rem;">
-      אנא הזינו את מספר הנבדק (חובה) ואז בחרו איזה סרטון פתיחה להפעיל.
-      לאחר הלחיצה על הכפתור הסרטון יופיע במסך מלא, ובסיומו תועברו אוטומטית לשלב הבא.
+    <p class="muted" style="margin-top:8px;font-size:3.0rem;">
+      אנא הזינו מספר נבדק (חובה) ואז בחרו איזה סרטון פתיחה להפעיל.
+      הסרטון יופיע במסך מלא, ובסיומו תועברו אוטומטית לשלב הבא.
     </p>
 
-    <!-- מספר נבדק כבר במסך הראשון (חובה לפני הכל) -->
     <div class="row" style="margin-top:10px;">
       <div class="field" style="min-width:260px;max-width:520px;">
         <label for="participantIntro">מספר נבדק (חובה)</label>
@@ -153,14 +153,13 @@
       <div id="pidMsg" class="muted" style="font-size:1.1rem;"></div>
     </div>
 
-    <!-- שני כפתורים ממורכזים -->
     <div class="row center-row" style="margin-top:18px;">
       <button id="startIntroBtn1" class="btn" disabled>אישור1</button>
       <button id="startIntroBtn2" class="btn" disabled>אישור2</button>
     </div>
   </div>
 
-  <!-- המסך של הלמידה/אימון/ניסוי -->
+  <!-- מסך ראשי -->
   <div id="mainCard" class="card" style="display:none;">
     <div class="row" style="justify-content:space-between;align-items:baseline;">
       <h1 id="title">צפייה בסרטון</h1>
@@ -174,8 +173,7 @@
       <button id="playBtn" class="btn" disabled>הרץ סרטון</button>
     </div>
 
-    <!-- שני סרטונים (השני מופיע רק בלמידה 1) -->
-    <div id="videosWrap" class="videos-wrap">
+    <div class="videos-wrap">
       <div class="video-col">
         <video id="vid" controls playsinline preload="auto">
           הדפדפן שלך לא תומך בווידאו.
@@ -192,15 +190,16 @@
 
     <div class="hr"></div>
 
-    <!-- בלוק ה-VAS -->
-    <div class="row">
-      <div class="field" style="min-width:220px;">
-        <label for="ratingRange">VAS ציון: <span id="ratingVal">5.0</span></label>
-        <input id="ratingRange" type="range" min="0" max="10" step="0.1" value="5.0" />
-        <div class="vas-labels" aria-hidden="true">
-          <span>טוב</span>
-          <span>בינוני</span>
-          <span>גרוע</span>
+    <div class="vas-wrap">
+      <div class="row" style="justify-content:center;">
+        <div class="field" style="min-width:220px;">
+          <label for="ratingRange">VAS ציון: <span id="ratingVal">5.0</span></label>
+          <input id="ratingRange" type="range" min="0" max="10" step="0.1" value="5.0" />
+          <div class="vas-labels" aria-hidden="true">
+            <span>טוב</span>
+            <span>בינוני</span>
+            <span>גרוע</span>
+          </div>
         </div>
       </div>
     </div>
@@ -212,539 +211,623 @@
     <div id="msg" style="margin-top:14px"></div>
   </div>
 
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      // === Supabase === (אשראי/מפתח כפי שהיה)
-      const SUPABASE_URL = 'https://dbintxdkurajdgimcdeb.supabase.co';
-      const SUPABASE_ANON_KEY =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiaW50eGRrdXJhamRnaW1jZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc1NTAsImV4cCI6MjA3NDEwMzU1MH0.usRUg5lTw96BaEydMV9wl8vtuZ3-e0MZA1UUMgh5YaA';
-      const RATINGS_TABLE = 'ratings';
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  // === Supabase ===
+  const SUPABASE_URL = 'https://dbintxdkurajdgimcdeb.supabase.co';
+  const SUPABASE_ANON_KEY =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiaW50eGRrdXJhamRnaW1jZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc1NTAsImV4cCI6MjA3NDEwMzU1MH0.usRUg5lTw96BaEydMV9wl8vtuZ3-e0MZA1UUMgh5YaA';
+  const RATINGS_TABLE = 'ratings';
 
-      // סרטוני פתיחה — שני כפתורים
-      const INTRO_VIDEO_1 = 'https://portnoys.github.io/Naama/Lecture_research.mp4';
-      const INTRO_VIDEO_2 = 'https://portnoys.github.io/Naama/Lecture_balance.mp4';
+  const INTRO_VIDEO_1 = 'https://portnoys.github.io/Naama/Lecture_research.mp4';
+  const INTRO_VIDEO_2 = 'https://portnoys.github.io/Naama/Lecture_balance.mp4';
 
-      // ----- סרטוני למידה (6) עם ציון קבוע -----
-      const LEARNING_VIDEOS = [
-        { url: 'https://portnoys.github.io/Naama/סרט 1 למידה 2.8.mp4',  score: 2.8 },
-        { url: 'https://portnoys.github.io/Naama/סרט 2 למידה 9.9.mp4',  score: 9.9 },
-        { url: 'https://portnoys.github.io/Naama/סרט 3 למידה  8.1.mp4', score: 8.1 },
-        { url: 'https://portnoys.github.io/Naama/סרט 4 למידה 4.7.mp4',  score: 4.7 },
-        { url: 'https://portnoys.github.io/Naama/סרט 5 למידה 1.3.mp4',  score: 1.3 },
-        { url: 'https://portnoys.github.io/Naama/סרט 6 למידה 4.4.mp4',  score: 4.4 }
-      ];
+  const LEARNING_VIDEOS = [
+    { url: 'https://portnoys.github.io/Naama/סרט 1 למידה 2.8.mp4',  score: 2.8 },
+    { url: 'https://portnoys.github.io/Naama/סרט 2 למידה 9.9.mp4',  score: 9.9 },
+    { url: 'https://portnoys.github.io/Naama/סרט 3 למידה  8.1.mp4', score: 8.1 },
+    { url: 'https://portnoys.github.io/Naama/סרט 4 למידה 4.7.mp4',  score: 4.7 },
+    { url: 'https://portnoys.github.io/Naama/סרט 5 למידה 1.3.mp4',  score: 1.3 },
+    { url: 'https://portnoys.github.io/Naama/סרט 6 למידה 4.4.mp4',  score: 4.4 }
+  ];
 
-      // סרטון צד ללמידה 1 (אישה בת 75) - עדכני כאן אם צריך
-      const SIDE_LEARNING1_VIDEO = 'https://portnoys.github.io/Naama/אישה בת 75.mp4';
-      const SIDE_LEARNING1_TITLE = 'אישה בת 75';
+  // סרטון צד בלמידה 1
+  const SIDE_LEARNING1_VIDEO = 'https://portnoys.github.io/Naama/אישה בת 75.mp4';
+  const SIDE_LEARNING1_TITLE = 'אישה בת 75';
 
-      // ----- סרטוני אימון עם משוב (12) -----
-      const FEEDBACK_VIDEOS = [
-        { url: 'https://portnoys.github.io/Naama/אימון 1 עם משוב 8.0.mp4',  score: 8.0 },
-        { url: 'https://portnoys.github.io/Naama/אימון 2 עם משוב 1.2.mp4',  score: 1.2 },
-        { url: 'https://portnoys.github.io/Naama/אימון 3 עם משוב 4.9.mp4',  score: 4.9 },
-        { url: 'https://portnoys.github.io/Naama/Naama/אימון 4 עם משוב 9.9.mp4',  score: 9.9 }, // אם שם אחר - עדכני
-        { url: 'https://portnoys.github.io/Naama/אימון 5 עם משוב 2.5.mp4',  score: 2.5 },
-        { url: 'https://portnoys.github.io/Naama/אימון 6 עם משוב 6.1.mp4',  score: 6.1 },
-        { url: 'https://portnoys.github.io/Naama/אימון 7 עם משוב 4.5.mp4',  score: 4.5 },
-        { url: 'https://portnoys.github.io/Naama/אימון 8 עם משוב 9.4.mp4',  score: 9.4 },
-        { url: 'https://portnoys.github.io/Naama/אימון 9 עם משוב 1.6.mp4',  score: 1.6 },
-        { url: 'https://portnoys.github.io/Naama/אימון 10 עם משוב 8.5.mp4', score: 8.5 },
-        { url: 'https://portnoys.github.io/Naama/אימון 11 עם משוב 5.5.mp4', score: 5.5 },
-        { url: 'https://portnoys.github.io/Naama/אימון 12 עם משוב 2.8.mp4', score: 2.8 }
-      ];
+  const FEEDBACK_VIDEOS = [
+    { url: 'https://portnoys.github.io/Naama/אימון 1 עם משוב 8.0.mp4',  score: 8.0 },
+    { url: 'https://portnoys.github.io/Naama/אימון 2 עם משוב 1.2.mp4',  score: 1.2 },
+    { url: 'https://portnoys.github.io/Naama/אימון 3 עם משוב 4.9.mp4',  score: 4.9 },
+    { url: 'https://portnoys.github.io/Naama/אימון 4 עם משוב 9.9.mp4',  score: 9.9 },
+    { url: 'https://portnoys.github.io/Naama/אימון 5 עם משוב 2.5.mp4',  score: 2.5 },
+    { url: 'https://portnoys.github.io/Naama/אימון 6 עם משוב 6.1.mp4',  score: 6.1 },
+    { url: 'https://portnoys.github.io/Naama/אימון 7 עם משוב 4.5.mp4',  score: 4.5 },
+    { url: 'https://portnoys.github.io/Naama/אימון 8 עם משוב 9.4.mp4',  score: 9.4 },
+    { url: 'https://portnoys.github.io/Naama/אימון 9 עם משוב 1.6.mp4',  score: 1.6 },
+    { url: 'https://portnoys.github.io/Naama/אימון 10 עם משוב 8.5.mp4', score: 8.5 },
+    { url: 'https://portnoys.github.io/Naama/אימון 11 עם משוב 5.5.mp4', score: 5.5 },
+    { url: 'https://portnoys.github.io/Naama/אימון 12 עם משוב 2.8.mp4', score: 2.8 }
+  ];
 
-      // ----- סרטוני ניסוי (העיקריים, ניתנים לדרוג חופשי) -----
-      const MAIN_VIDEOS = [
-        'https://portnoys.github.io/Naama/7.mp4',
-        'https://portnoys.github.io/Naama/6.mp4',
-        'https://portnoys.github.io/Naama/5.mp4',
-        'https://portnoys.github.io/Naama/4.mp4'
-      ];
+  const MAIN_VIDEOS = [
+    'https://portnoys.github.io/Naama/7.mp4',
+    'https://portnoys.github.io/Naama/6.mp4',
+    'https://portnoys.github.io/Naama/5.mp4',
+    'https://portnoys.github.io/Naama/4.mp4'
+  ];
 
-      // DOM
-      const introScreen        = document.getElementById('introScreen');
-      const mainCard           = document.getElementById('mainCard');
+  // DOM
+  const introScreen = document.getElementById('introScreen');
+  const mainCard = document.getElementById('mainCard');
 
-      const participantIntro   = document.getElementById('participantIntro');
-      const confirmPidBtnIntro = document.getElementById('confirmPidBtnIntro');
-      const pidMsg             = document.getElementById('pidMsg');
+  const participantIntro = document.getElementById('participantIntro');
+  const confirmPidBtnIntro = document.getElementById('confirmPidBtnIntro');
+  const pidMsg = document.getElementById('pidMsg');
 
-      const startIntroBtn1     = document.getElementById('startIntroBtn1');
-      const startIntroBtn2     = document.getElementById('startIntroBtn2');
+  const startIntroBtn1 = document.getElementById('startIntroBtn1');
+  const startIntroBtn2 = document.getElementById('startIntroBtn2');
 
-      const titleEl            = document.getElementById('title');
-      const playBtn            = document.getElementById('playBtn');
-      const vid                = document.getElementById('vid');
+  const titleEl = document.getElementById('title');
+  const playBtn = document.getElementById('playBtn');
+  const vid = document.getElementById('vid');
 
-      const sideVideoCol       = document.getElementById('sideVideoCol');
-      const sideVideoTitle     = document.getElementById('sideVideoTitle');
-      const vidSide            = document.getElementById('vidSide');
+  const sideVideoCol = document.getElementById('sideVideoCol');
+  const sideVideoTitle = document.getElementById('sideVideoTitle');
+  const vidSide = document.getElementById('vidSide');
 
-      const ratingRange        = document.getElementById('ratingRange');
-      const ratingVal          = document.getElementById('ratingVal');
-      const submitBtn          = document.getElementById('submitBtn');
-      const msg                = document.getElementById('msg');
+  const ratingRange = document.getElementById('ratingRange');
+  const ratingVal = document.getElementById('ratingVal');
+  const submitBtn = document.getElementById('submitBtn');
+  const msg = document.getElementById('msg');
 
-      // חשוב: לא נשמור מספר נבדק ב-sessionStorage כדי שאחרי refresh הוא יימחק — המשתנה יחזיק אותו בזמן שהדף פתוח
-      let participantId = ''; // יאוחסן כאן אחרי אישור
+  // --- דרישתך: ברענון למחוק מספר נבדק ולהמתין למספר חדש ---
+  participantIntro.value = '';
+  pidMsg.textContent = '';
+  startIntroBtn1.disabled = true;
+  startIntroBtn2.disabled = true;
 
-      // שלבים: 'intro' -> 'learning' -> 'feedback' -> 'main'
-      let phase = 'intro';
-      let learnIndex = 0;
-      let feedbackIndex = 0;
-      let mainIndex = 0;
+  let participantId = '';
 
-      let videoCompleted = false;
-      let feedbackReveal = false;
-      let vasChanged = false;
+  // שלבים
+  let phase = 'intro';
+  let learnIndex = 0;
+  let feedbackIndex = 0;
+  let mainIndex = 0;
 
-      // מצב "שני סרטונים"
-      let dualMode = false;
-      let vidEnded = false;
-      let sideEnded = false;
-      let syncing = false;
+  let videoCompleted = false;
+  let feedbackReveal = false;
+  let vasChanged = false;
 
-      function setTitleLearning(i) {
-        titleEl.textContent = `סרטון למידה ${i + 1} מתוך ${LEARNING_VIDEOS.length}`;
-      }
-      function setTitleFeedback(i) {
-        titleEl.textContent = `אימון עם משוב ${i + 1} מתוך ${FEEDBACK_VIDEOS.length}`;
-      }
-      function setTitleMain(i) {
-        titleEl.textContent = `צפייה בסרטון ${i + 1}`;
-      }
-      function resetPlayButton(){
-        playBtn.textContent = 'הרץ סרטון';
-      }
+  // dual sync state
+  let dualMode = false;
+  let vidEnded = false;
+  let sideEnded = false;
 
-      function setRating(val){
-        const v = Math.min(10, Math.max(0, Number(val)));
-        ratingRange.value = v.toFixed(1);
-        ratingVal.textContent = v.toFixed(1);
+  // sync loop
+  let rafId = null;
+  let syncing = false;
+  let resumeWhenReady = false;
 
-        let color;
-        if (v <= 3.333)      color = '#e74c3c';
-        else if (v <= 6.666) color = '#f4c430';
-        else                 color = '#2ecc71';
-        ratingVal.style.color = color;
-      }
+  function setTitleLearning(i){ titleEl.textContent = `סרטון למידה ${i+1} מתוך ${LEARNING_VIDEOS.length}`; }
+  function setTitleFeedback(i){ titleEl.textContent = `אימון עם משוב ${i+1} מתוך ${FEEDBACK_VIDEOS.length}`; }
+  function setTitleMain(i){ titleEl.textContent = `צפייה בסרטון ${i+1}`; }
 
-      function resetEndedFlags(){
-        vidEnded = false;
-        sideEnded = false;
-      }
-      function bothEnded(){
-        return dualMode ? (vidEnded && sideEnded) : vidEnded;
-      }
-      function setDualMode(on){
-        dualMode = on;
-        sideVideoCol.style.display = on ? '' : 'none';
-        if (!on) {
-          try { vidSide.pause(); } catch(e){}
-          vidSide.removeAttribute('src');
-          vidSide.load();
-        } else {
-          // וודא שהוידאו הצדדי יהיה muted ובלי controls כדי למנוע הפרעות
-          try { vidSide.muted = true; vidSide.controls = false; } catch(e){}
-        }
-      }
-      function syncToMaster(master, slave){
-        if (!dualMode || syncing) return;
-        const drift = slave.currentTime - master.currentTime;
-        if (Math.abs(drift) > 0.12) {
-          syncing = true;
-          try { slave.currentTime = master.currentTime; } catch(e){}
-          syncing = false;
-        }
-      }
+  function resetPlayButton(){ playBtn.textContent = 'הרץ סרטון'; }
 
-      // לחצן אישור PID בשקופית הפתיחה - חייב לפני הפעלת כל אחד הכפתורים
-      confirmPidBtnIntro.addEventListener('click', () => {
-        const v = (participantIntro.value || '').trim();
-        if (!v) {
-          pidMsg.textContent = 'נא להזין מספר נבדק';
-          return;
-        }
-        participantId = v;
-        // לא שומרים ב-sessionStorage כדי שהמידע ימחק ברענון
-        pidMsg.textContent = 'נשמר (בזכרון הדף) ✔';
-        startIntroBtn1.disabled = false;
-        startIntroBtn2.disabled = false;
-      });
+  function setRating(val){
+    const v = Math.min(10, Math.max(0, Number(val)));
+    ratingRange.value = v.toFixed(1);
+    ratingVal.textContent = v.toFixed(1);
 
-      // עדכון VAS כשזז
-      ['input','change'].forEach(ev => {
-        ratingRange.addEventListener(ev, () => {
-          if (phase === 'feedback' || phase === 'main') {
-            setRating(ratingRange.value);
-          }
-          if (phase === 'feedback' && !vasChanged) {
-            vasChanged = true;
-            if (videoCompleted && !feedbackReveal) {
-              submitBtn.disabled = false;
-            }
-          }
-        });
-      });
+    let color;
+    if (v <= 3.333)      color = '#e74c3c';
+    else if (v <= 6.666) color = '#f4c430';
+    else                 color = '#2ecc71';
+    ratingVal.style.color = color;
+  }
 
-      function loadCurrentVideo() {
-        videoCompleted = false;
-        submitBtn.disabled = true;
-        resetPlayButton();
-        msg.innerHTML = '';
-        feedbackReveal = false;
-        vasChanged = false;
-        resetEndedFlags();
+  function resetEndedFlags(){
+    vidEnded = false;
+    sideEnded = false;
+  }
+  function bothEnded(){
+    return dualMode ? (vidEnded && sideEnded) : vidEnded;
+  }
 
-        if (phase === 'learning') {
-          const vobj = LEARNING_VIDEOS[learnIndex];
-          vid.src = vobj.url;
-          setTitleLearning(learnIndex);
-          setRating(vobj.score);
-          ratingRange.disabled = true;
-          submitBtn.textContent = 'המשך';
+  function stopSyncLoop(){
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    // להחזיר playbackRate רגיל
+    try { vid.playbackRate = 1; } catch(e){}
+    try { vidSide.playbackRate = 1; } catch(e){}
+  }
 
-          // מצב כפול רק בסרטון למידה 1
-          if (learnIndex === 0) {
-            setDualMode(true);
-            sideVideoTitle.textContent = SIDE_LEARNING1_TITLE;
-            vidSide.src = SIDE_LEARNING1_VIDEO;
+  function startSyncLoop(){
+    stopSyncLoop();
+    if (!dualMode) return;
 
-            // בקשה לטעינה מוקדמת
-            try { vid.preload = 'auto'; vidSide.preload = 'auto'; vidSide.muted = true; vidSide.controls = false; } catch(e){}
-            // playBtn צריך להיות פעיל כדי שהמשתמש יוכל להתחיל ניגון
-            playBtn.disabled = false;
-          } else {
-            setDualMode(false);
-            try { vid.preload = 'auto'; } catch(e){}
-            playBtn.disabled = false;
-          }
+    const master = vid;
+    const slave  = vidSide;
 
-        } else if (phase === 'feedback') {
-          const vobj = FEEDBACK_VIDEOS[feedbackIndex];
-          vid.src = vobj.url;
-          setTitleFeedback(feedbackIndex);
-          setDualMode(false);
-          ratingRange.disabled = false;
-          setRating(5.0);
-          submitBtn.textContent = 'המשך';
-          playBtn.disabled = false;
-
-        } else { // main
-          const url = MAIN_VIDEOS[mainIndex];
-          vid.src = url;
-          setTitleMain(mainIndex);
-          setDualMode(false);
-          ratingRange.disabled = false;
-          setRating(5.0);
-          submitBtn.textContent = 'שליחת ציון';
-          playBtn.disabled = false;
-        }
+    const tick = () => {
+      if (!dualMode) return;
+      // רק כששניהם מנגנים בפועל
+      if (master.paused || slave.paused || master.ended || slave.ended) {
+        rafId = requestAnimationFrame(tick);
+        return;
       }
 
-      // מחכים ל-canplay/canplaythrough עם timeout
-      function waitForReady(video, timeout = 7000) {
-        return new Promise((resolve) => {
-          if (!video) return resolve();
-          try {
-            if (video.readyState >= 3) return resolve();
-          } catch(e){ return resolve(); }
+      // drift: slave - master
+      const drift = (slave.currentTime - master.currentTime);
 
-          let done = false;
-          const onReady = () => {
-            if (done) return;
-            done = true;
-            cleanup();
-            resolve();
-          };
-          const onTimeout = () => {
-            if (done) return;
-            done = true;
-            cleanup();
-            resolve();
-          };
-          const cleanup = () => {
-            try { video.removeEventListener('canplay', onReady); } catch(e){}
-            try { video.removeEventListener('canplaythrough', onReady); } catch(e){}
-          };
-          try {
-            video.addEventListener('canplay', onReady);
-            video.addEventListener('canplaythrough', onReady);
-          } catch(e){ resolve(); }
-          setTimeout(onTimeout, timeout);
-        });
+      // תיקון גדול: קפיצה
+      if (Math.abs(drift) > 0.25) {
+        syncing = true;
+        try { slave.currentTime = master.currentTime; } catch(e){}
+        syncing = false;
+        try { slave.playbackRate = 1; } catch(e){}
+      } else {
+        // תיקון עדין באמצעות playbackRate
+        // אם slave מאחר (שלילי) => להאיץ מעט, אם מקדים => להאט מעט
+        let rate = 1;
+        if (drift < -0.05) rate = 1.05;
+        else if (drift > 0.05) rate = 0.95;
+        try { slave.playbackRate = rate; } catch(e){}
       }
 
-      // הפעלת סרטון פתיחה לפי בחירה (שני כפתורים) — רק אם אישרת PID
-      function startIntroWithVideo(introUrl){
-        if (!participantId) {
-          pidMsg.textContent = 'נא לאשר מספר נבדק קודם';
-          return;
-        }
+      rafId = requestAnimationFrame(tick);
+    };
 
-        // מסתירים את שקופית הפתיחה ומראים את הכרטיס הראשי
-        introScreen.style.display = 'none';
-        mainCard.style.display = '';
+    rafId = requestAnimationFrame(tick);
+  }
 
-        phase = 'intro';
-        videoCompleted = false;
-        msg.innerHTML = '';
-        submitBtn.disabled = true;
+  function setDualMode(on){
+    dualMode = on;
+    sideVideoCol.style.display = on ? '' : 'none';
 
-        // בשלב ההרצאה: אין VAS ואין מצב כפול
-        ratingRange.disabled = true;
-        setDualMode(false);
+    if (!on) {
+      stopSyncLoop();
+      try { vidSide.pause(); } catch(e){}
+      vidSide.removeAttribute('src');
+      vidSide.load();
+      try { vidSide.controls = true; } catch(e){}
+      return;
+    }
 
-        vid.src = introUrl;
-        try { vid.preload = 'auto'; } catch(e){}
+    // dual on
+    try {
+      // master עם controls, slave בלי כדי לא להפעיל בטעות
+      vid.controls = true;
+      vidSide.controls = false;
+      // slave muted כדי להקטין בעיות autoplay/שמע כפול
+      vidSide.muted = true;
+    } catch(e){}
+  }
 
-        vid.currentTime = 0;
+  function waitForReady(video, timeout = 7000){
+    return new Promise((resolve) => {
+      if (!video) return resolve();
+      try { if (video.readyState >= 3) return resolve(); } catch(e){ return resolve(); }
 
-        const playPromise = vid.play();
-        if (playPromise && playPromise.catch) {
-          playPromise.catch(() => {});
-        }
+      let done = false;
+      const onReady = () => {
+        if (done) return;
+        done = true;
+        cleanup();
+        resolve();
+      };
+      const cleanup = () => {
+        try { video.removeEventListener('canplay', onReady); } catch(e){}
+        try { video.removeEventListener('canplaythrough', onReady); } catch(e){}
+      };
+      try {
+        video.addEventListener('canplay', onReady);
+        video.addEventListener('canplaythrough', onReady);
+      } catch(e){ return resolve(); }
 
-        // בקשה ל-fullscreen
-        if (vid.requestFullscreen) {
-          vid.requestFullscreen().catch(() => {});
-        } else if (vid.webkitRequestFullscreen) {
-          vid.webkitRequestFullscreen();
-        } else if (vid.msRequestFullscreen) {
-          vid.msRequestFullscreen();
-        }
-      }
-
-      startIntroBtn1.addEventListener('click', () => startIntroWithVideo(INTRO_VIDEO_1));
-      startIntroBtn2.addEventListener('click', () => startIntroWithVideo(INTRO_VIDEO_2));
-
-      // כפתור ניגון/ניגון מחדש (משופר להסבר בעיות סנכרון)
-      document.getElementById('playBtn').addEventListener('click', async () => {
-        // אתחל זמני
-        try { vid.currentTime = 0; } catch(e){}
-        if (dualMode) {
-          try { vidSide.currentTime = 0; } catch(e){}
-
-          // נחכה ששניהם יהיו מוכנים או עד timeout
-          await Promise.all([waitForReady(vid, 7000), waitForReady(vidSide, 7000)]);
-
-          // נסיון להריץ במקביל — אם נדחה, ננסה מאסטר ואז צדדי
-          try {
-            await Promise.all([vid.play(), vidSide.play()]);
-          } catch (e) {
-            try { await vid.play(); } catch(e2){}
-            await new Promise(r => setTimeout(r, 120));
-            try { await vidSide.play(); } catch(e3){}
-          }
-        } else {
-          try {
-            await waitForReady(vid, 7000);
-            await vid.play();
-          } catch(e){
-            try { vid.play().catch(()=>{}); } catch(_) {}
-          }
-        }
-
-        playBtn.textContent = 'הרץ שוב';
-      });
-
-      // סנכרון play/pause/seek בין הסרטונים (כשהסרטון הצד קיים)
-      vid.addEventListener('play', () => { if (dualMode) vidSide.play().catch(()=>{}); });
-      vid.addEventListener('pause', () => { if (dualMode) { try { vidSide.pause(); } catch(e){} } });
-
-      vidSide.addEventListener('play', () => { if (dualMode) vid.play().catch(()=>{}); });
-      vidSide.addEventListener('pause', () => { if (dualMode) { try { vid.pause(); } catch(e){} } });
-
-      vid.addEventListener('seeking', () => {
-        if (dualMode && !syncing) {
-          syncing = true;
-          try { vidSide.currentTime = vid.currentTime; } catch(e){}
-          syncing = false;
-        }
-      });
-      vidSide.addEventListener('seeking', () => {
-        if (dualMode && !syncing) {
-          syncing = true;
-          try { vid.currentTime = vidSide.currentTime; } catch(e){}
-          syncing = false;
-        }
-      });
-
-      vid.addEventListener('timeupdate', () => { if (dualMode) syncToMaster(vid, vidSide); });
-      vidSide.addEventListener('timeupdate', () => { if (dualMode) syncToMaster(vid, vidSide); });
-
-      // "הסתיים" סרטון ראשי
-      vid.addEventListener('ended', () => {
-        vidEnded = true;
-        videoCompleted = bothEnded();
-        if (!videoCompleted) return;
-
-        // סיום סרט ההרצאה -> מעבר ללמידה
-        if (phase === 'intro') {
-          if (document.fullscreenElement && document.exitFullscreen) {
-            document.exitFullscreen().catch(() => {});
-          }
-          phase = 'learning';
-          learnIndex = 0;
-          ratingRange.disabled = true;
-          loadCurrentVideo();
-          return;
-        }
-
-        if (phase === 'feedback') {
-          if (vasChanged && !feedbackReveal) submitBtn.disabled = false;
-        } else {
-          submitBtn.disabled = false;
-        }
-      });
-
-      // "הסתיים" סרטון צד
-      vidSide.addEventListener('ended', () => {
-        sideEnded = true;
-        videoCompleted = bothEnded();
-        if (!videoCompleted) return;
-
-        if (phase === 'feedback') {
-          if (vasChanged && !feedbackReveal) submitBtn.disabled = false;
-        } else if (phase !== 'intro') {
-          submitBtn.disabled = false;
-        }
-      });
-
-      // שמירה ל-Supabase (כפי שהיה)
-      async function supabaseInsert(row) {
-        try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-              'Prefer': 'return=representation'
-            },
-            body: JSON.stringify(row)
-          });
-          if (!res.ok) return;
-        } catch { }
-      }
-
-      // כפתור "המשך"/"שליחת ציון"
-      submitBtn.addEventListener('click', async () => {
-        if (!videoCompleted) return;
-        if (!participantId) return;
-
-        // ----- שלב למידה -----
-        if (phase === 'learning') {
-          submitBtn.disabled = true;
-          if (learnIndex < LEARNING_VIDEOS.length - 1) {
-            learnIndex++;
-            loadCurrentVideo();
-          } else {
-            phase = 'feedback';
-            feedbackIndex = 0;
-            loadCurrentVideo();
-          }
-          return;
-        }
-
-        // ----- שלב אימון עם משוב -----
-        if (phase === 'feedback') {
-          const vobj = FEEDBACK_VIDEOS[feedbackIndex];
-
-          if (!feedbackReveal) {
-            submitBtn.disabled = true;
-
-            const payload = {
-              participant_id: participantId,
-              video_url: vobj.url,
-              rating: Number(ratingRange.value),
-              user_agent: navigator.userAgent.slice(0, 500),
-              meta: {
-                pageHref: location.href,
-                video_index: feedbackIndex + 1,
-                phase: 'feedback',
-                true_score: vobj.score,
-                endedOnce: true
-              }
-            };
-
-            await supabaseInsert(payload);
-
-            ratingRange.disabled = true;
-            feedbackReveal = true;
-
-            msg.innerHTML =
-              `<div style="font-size:2rem;font-weight:700;margin-top:10px;">
-                 הציון האמיתי של סרטון זה הוא: ${vobj.score.toFixed(1)}
-               </div>`;
-
-            submitBtn.textContent =
-              (feedbackIndex < FEEDBACK_VIDEOS.length - 1)
-                ? 'המשך לסרטון הבא'
-                : 'המשך לשלב הבא';
-
-            submitBtn.disabled = false;
-            return;
-          }
-
-          submitBtn.disabled = true;
-          msg.innerHTML = '';
-          ratingRange.disabled = false;
-
-          if (feedbackIndex < FEEDBACK_VIDEOS.length - 1) {
-            feedbackIndex++;
-            loadCurrentVideo();
-          } else {
-            phase = 'main';
-            mainIndex = 0;
-            loadCurrentVideo();
-          }
-          return;
-        }
-
-        // ----- שלב ניסוי -----
-        if (phase === 'main') {
-          submitBtn.disabled = true;
-
-          const payload = {
-            participant_id: participantId,
-            video_url: MAIN_VIDEOS[mainIndex],
-            rating: Number(ratingRange.value),
-            user_agent: navigator.userAgent.slice(0, 500),
-            meta: {
-              pageHref: location.href,
-              video_index: mainIndex + 1,
-              phase: 'main',
-              endedOnce: true
-            }
-          };
-
-          await supabaseInsert(payload);
-
-          if (mainIndex < MAIN_VIDEOS.length - 1) {
-            mainIndex++;
-            loadCurrentVideo();
-          } else {
-            submitBtn.disabled = true;
-            playBtn.disabled = true;
-            msg.textContent = 'תודה! סיימת את כל הסרטונים.';
-          }
-        }
-      });
-
-      // init – ערך ראשוני ל-VAS
-      setRating(5.0);
-
-      // חשוב: על כל טעינת דף (refresh) — נמחק את ערך השדה כדי שאם היה שם משהו הוא יימחק
-      // (וזה מבטיח שהמשתמש יצטרך להזין מספר חדש)
-      participantIntro.value = '';
-      pidMsg.textContent = '';
-      startIntroBtn1.disabled = true;
-      startIntroBtn2.disabled = true;
-      // playBtn יהיה כבוי עד שנכנס לשלב המתאים
-      playBtn.disabled = true;
+      setTimeout(() => {
+        if (done) return;
+        done = true;
+        cleanup();
+        resolve();
+      }, timeout);
     });
-  </script>
+  }
+
+  // אם אחד נתקע בבאפרינג - עוצרים את שניהם וממשיכים יחד כשמוכן
+  function pauseBothForBuffer(){
+    if (!dualMode) return;
+    resumeWhenReady = !(vid.paused && vidSide.paused);
+    try { vid.pause(); } catch(e){}
+    try { vidSide.pause(); } catch(e){}
+  }
+
+  async function resumeBothIfNeeded(){
+    if (!dualMode) return;
+    if (!resumeWhenReady) return;
+
+    // נחכה ששניהם יהיו ready
+    await Promise.all([waitForReady(vid, 8000), waitForReady(vidSide, 8000)]);
+
+    // ניישר זמן על המאסטר
+    syncing = true;
+    try { vidSide.currentTime = vid.currentTime; } catch(e){}
+    syncing = false;
+
+    try {
+      await Promise.all([vid.play(), vidSide.play()]);
+    } catch(e) {
+      try { await vid.play(); } catch(e2){}
+      await new Promise(r => setTimeout(r, 120));
+      try { await vidSide.play(); } catch(e3){}
+    }
+
+    startSyncLoop();
+    resumeWhenReady = false;
+  }
+
+  // PID: חובה לפני התחלה
+  confirmPidBtnIntro.addEventListener('click', () => {
+    const v = (participantIntro.value || '').trim();
+    if (!v) {
+      pidMsg.textContent = 'נא להזין מספר נבדק';
+      return;
+    }
+    participantId = v;
+    pidMsg.textContent = 'נשמר ✔';
+    startIntroBtn1.disabled = false;
+    startIntroBtn2.disabled = false;
+  });
+
+  // VAS update
+  ['input','change'].forEach(ev => {
+    ratingRange.addEventListener(ev, () => {
+      if (phase === 'feedback' || phase === 'main') setRating(ratingRange.value);
+      if (phase === 'feedback' && !vasChanged) {
+        vasChanged = true;
+        if (videoCompleted && !feedbackReveal) submitBtn.disabled = false;
+      }
+    });
+  });
+
+  function loadCurrentVideo(){
+    videoCompleted = false;
+    submitBtn.disabled = true;
+    msg.innerHTML = '';
+    feedbackReveal = false;
+    vasChanged = false;
+    resetPlayButton();
+    resetEndedFlags();
+    stopSyncLoop();
+
+    // תמיד לאפשר playBtn בשלב שאינו intro (המשתמש מתחיל צפייה)
+    playBtn.disabled = false;
+
+    if (phase === 'learning') {
+      const vobj = LEARNING_VIDEOS[learnIndex];
+      vid.src = vobj.url;
+      setTitleLearning(learnIndex);
+      setRating(vobj.score);
+      ratingRange.disabled = true;
+      submitBtn.textContent = 'המשך';
+
+      if (learnIndex === 0) {
+        setDualMode(true);
+        sideVideoTitle.textContent = SIDE_LEARNING1_TITLE;
+        vidSide.src = SIDE_LEARNING1_VIDEO;
+
+        // לוודא טעינה מוקדמת
+        try { vid.preload = 'auto'; vidSide.preload = 'auto'; } catch(e){}
+        vid.load();
+        vidSide.load();
+      } else {
+        setDualMode(false);
+        vid.load();
+      }
+
+      return;
+    }
+
+    if (phase === 'feedback') {
+      const vobj = FEEDBACK_VIDEOS[feedbackIndex];
+      setDualMode(false);
+      vid.src = vobj.url;
+      setTitleFeedback(feedbackIndex);
+      ratingRange.disabled = false;
+      setRating(5.0);
+      submitBtn.textContent = 'המשך';
+      vid.load();
+      return;
+    }
+
+    // main
+    setDualMode(false);
+    const url = MAIN_VIDEOS[mainIndex];
+    vid.src = url;
+    setTitleMain(mainIndex);
+    ratingRange.disabled = false;
+    setRating(5.0);
+    submitBtn.textContent = 'שליחת ציון';
+    vid.load();
+  }
+
+  function startIntroWithVideo(introUrl){
+    if (!participantId) {
+      pidMsg.textContent = 'נא לאשר מספר נבדק קודם';
+      return;
+    }
+
+    introScreen.style.display = 'none';
+    mainCard.style.display = '';
+
+    phase = 'intro';
+    videoCompleted = false;
+    submitBtn.disabled = true;
+
+    ratingRange.disabled = true;
+    setDualMode(false);
+    playBtn.disabled = true; // אין כפתור רץ בשלב intro (אוטו)
+
+    vid.src = introUrl;
+    try { vid.preload = 'auto'; } catch(e){}
+    vid.load();
+    vid.currentTime = 0;
+
+    const playPromise = vid.play();
+    if (playPromise && playPromise.catch) playPromise.catch(()=>{});
+
+    if (vid.requestFullscreen) vid.requestFullscreen().catch(()=>{});
+    else if (vid.webkitRequestFullscreen) vid.webkitRequestFullscreen();
+    else if (vid.msRequestFullscreen) vid.msRequestFullscreen();
+  }
+
+  startIntroBtn1.addEventListener('click', () => startIntroWithVideo(INTRO_VIDEO_1));
+  startIntroBtn2.addEventListener('click', () => startIntroWithVideo(INTRO_VIDEO_2));
+
+  // PLAY button — מתחיל צפייה מסונכרנת
+  playBtn.addEventListener('click', async () => {
+    // לא לאפשר play בלי PID בכלל (רק למקרה)
+    if (!participantId) return;
+
+    if (!dualMode) {
+      try { vid.currentTime = 0; } catch(e){}
+      await waitForReady(vid, 8000);
+      try { await vid.play(); } catch(e){ try { vid.play().catch(()=>{}); } catch(_){} }
+      playBtn.textContent = 'הרץ שוב';
+      return;
+    }
+
+    // dual
+    stopSyncLoop();
+    resumeWhenReady = false;
+
+    try { vid.currentTime = 0; } catch(e){}
+    try { vidSide.currentTime = 0; } catch(e){}
+
+    // המתנה לשניהם
+    await Promise.all([waitForReady(vid, 10000), waitForReady(vidSide, 10000)]);
+
+    // יישור לפני play
+    syncing = true;
+    try { vidSide.currentTime = vid.currentTime; } catch(e){}
+    syncing = false;
+
+    try {
+      await Promise.all([vid.play(), vidSide.play()]);
+    } catch(e) {
+      try { await vid.play(); } catch(e2){}
+      await new Promise(r => setTimeout(r, 120));
+      try { await vidSide.play(); } catch(e3){}
+    }
+
+    startSyncLoop();
+    playBtn.textContent = 'הרץ שוב';
+  });
+
+  // סנכרון פעולות משתמש על master
+  vid.addEventListener('pause', () => {
+    if (!dualMode) return;
+    try { vidSide.pause(); } catch(e){}
+    stopSyncLoop();
+  });
+
+  vid.addEventListener('play', async () => {
+    if (!dualMode) return;
+    // אם המשתמש לחץ play על הוידאו הראשי דרך controls
+    await waitForReady(vidSide, 8000);
+    syncing = true;
+    try { vidSide.currentTime = vid.currentTime; } catch(e){}
+    syncing = false;
+    try { await vidSide.play(); } catch(e){}
+    startSyncLoop();
+  });
+
+  vid.addEventListener('seeking', () => {
+    if (!dualMode) return;
+    if (syncing) return;
+    syncing = true;
+    try { vidSide.currentTime = vid.currentTime; } catch(e){}
+    syncing = false;
+  });
+
+  // לא לאפשר שליטה ישירה בצדדי (אם בכל זאת מישהו לחץ)
+  vidSide.addEventListener('seeking', () => {
+    if (!dualMode) return;
+    if (syncing) return;
+    syncing = true;
+    try { vidSide.currentTime = vid.currentTime; } catch(e){}
+    syncing = false;
+  });
+
+  // טיפול בבאפרינג: אם אחד נתקע - לעצור שניהם ולהמשיך יחד
+  ['waiting','stalled'].forEach(ev => {
+    vid.addEventListener(ev, () => { if (dualMode) pauseBothForBuffer(); });
+    vidSide.addEventListener(ev, () => { if (dualMode) pauseBothForBuffer(); });
+  });
+  ['canplay','playing'].forEach(ev => {
+    vid.addEventListener(ev, () => { if (dualMode) resumeBothIfNeeded(); });
+    vidSide.addEventListener(ev, () => { if (dualMode) resumeBothIfNeeded(); });
+  });
+
+  // ended master
+  vid.addEventListener('ended', () => {
+    vidEnded = true;
+    videoCompleted = bothEnded();
+    stopSyncLoop();
+    if (!videoCompleted) return;
+
+    if (phase === 'intro') {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(()=>{});
+      }
+      phase = 'learning';
+      learnIndex = 0;
+      loadCurrentVideo();
+      return;
+    }
+
+    if (phase === 'feedback') {
+      if (vasChanged && !feedbackReveal) submitBtn.disabled = false;
+    } else {
+      submitBtn.disabled = false;
+    }
+  });
+
+  // ended side
+  vidSide.addEventListener('ended', () => {
+    sideEnded = true;
+    videoCompleted = bothEnded();
+    stopSyncLoop();
+    if (!videoCompleted) return;
+
+    if (phase === 'feedback') {
+      if (vasChanged && !feedbackReveal) submitBtn.disabled = false;
+    } else if (phase !== 'intro') {
+      submitBtn.disabled = false;
+    }
+  });
+
+  async function supabaseInsert(row){
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(row)
+      });
+      if (!res.ok) return;
+    } catch {}
+  }
+
+  submitBtn.addEventListener('click', async () => {
+    if (!videoCompleted) return;
+    if (!participantId) return;
+
+    if (phase === 'learning') {
+      submitBtn.disabled = true;
+      if (learnIndex < LEARNING_VIDEOS.length - 1) {
+        learnIndex++;
+        loadCurrentVideo();
+      } else {
+        phase = 'feedback';
+        feedbackIndex = 0;
+        loadCurrentVideo();
+      }
+      return;
+    }
+
+    if (phase === 'feedback') {
+      const vobj = FEEDBACK_VIDEOS[feedbackIndex];
+
+      if (!feedbackReveal) {
+        submitBtn.disabled = true;
+
+        const payload = {
+          participant_id: participantId,
+          video_url: vobj.url,
+          rating: Number(ratingRange.value),
+          user_agent: navigator.userAgent.slice(0, 500),
+          meta: {
+            pageHref: location.href,
+            video_index: feedbackIndex + 1,
+            phase: 'feedback',
+            true_score: vobj.score,
+            endedOnce: true
+          }
+        };
+
+        await supabaseInsert(payload);
+
+        ratingRange.disabled = true;
+        feedbackReveal = true;
+
+        msg.innerHTML =
+          `<div style="font-size:2rem;font-weight:700;margin-top:10px;">
+             הציון האמיתי של סרטון זה הוא: ${vobj.score.toFixed(1)}
+           </div>`;
+
+        submitBtn.textContent =
+          (feedbackIndex < FEEDBACK_VIDEOS.length - 1)
+            ? 'המשך לסרטון הבא'
+            : 'המשך לשלב הבא';
+
+        submitBtn.disabled = false;
+        return;
+      }
+
+      submitBtn.disabled = true;
+      msg.innerHTML = '';
+      ratingRange.disabled = false;
+
+      if (feedbackIndex < FEEDBACK_VIDEOS.length - 1) {
+        feedbackIndex++;
+        loadCurrentVideo();
+      } else {
+        phase = 'main';
+        mainIndex = 0;
+        loadCurrentVideo();
+      }
+      return;
+    }
+
+    // main
+    if (phase === 'main') {
+      submitBtn.disabled = true;
+
+      const payload = {
+        participant_id: participantId,
+        video_url: MAIN_VIDEOS[mainIndex],
+        rating: Number(ratingRange.value),
+        user_agent: navigator.userAgent.slice(0, 500),
+        meta: {
+          pageHref: location.href,
+          video_index: mainIndex + 1,
+          phase: 'main',
+          endedOnce: true
+        }
+      };
+
+      await supabaseInsert(payload);
+
+      if (mainIndex < MAIN_VIDEOS.length - 1) {
+        mainIndex++;
+        loadCurrentVideo();
+      } else {
+        submitBtn.disabled = true;
+        playBtn.disabled = true;
+        msg.textContent = 'תודה! סיימת את כל הסרטונים.';
+      }
+    }
+  });
+
+  // init
+  setRating(5.0);
+});
+</script>
 </body>
 </html>
