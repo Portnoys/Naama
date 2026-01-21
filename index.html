@@ -6,14 +6,14 @@
   <title>צפייה בסרטון — ניסוי וידאו</title>
   <style>
     body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       margin:0; padding:20px;
       background:#0b0f14; color:#eef2f6;
     }
 
-    /* הרחבה כדי לנצל את כל הרוחב שיש במסך (כמו בצילום) */
+    /* הרחבה כדי לנצל את כל הרוחב שיש במסך */
     .card {
-      max-width: 1400px;       /* היה 820px */
+      max-width: 1400px;
       margin:0 auto;
       background:#111823; border:1px solid #1b2433;
       border-radius:16px; padding:20px;
@@ -22,13 +22,15 @@
     h1 { margin:0 0 6px; font-size: 2rem; }
     .muted { color:#a9b4c6; font-size:1.5rem; }
 
+    /* וידאו - כל וידאו ימלא את עמודת הווידאו ושמור על יחס 16:9 */
     video {
       width:100%;
       border-radius:12px;
       border:1px solid #1b2433;
       background:#000;
-      aspect-ratio: 16 / 9;   /* מיישר גובה זהה לשני הסרטונים */
+      aspect-ratio: 16 / 9;
       height: auto;
+      display:block;
     }
 
     .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
@@ -39,7 +41,6 @@
       border:1px solid #243044; background:#0e141d; color:#eef2f6;
     }
 
-    /* --- VAS: גרוע (אדום) -> בינוני (צהוב) -> טוב (ירוק) --- */
     input[type="range"] {
       width: 100%;
       height: 6px;
@@ -58,12 +59,8 @@
       );
       outline: none;
     }
-    input[type="range"]::-webkit-slider-runnable-track {
-      height:6px; border-radius:8px; background: transparent;
-    }
-    input[type="range"]::-moz-range-track {
-      height:6px; border-radius:8px; background: transparent;
-    }
+    input[type="range"]::-webkit-slider-runnable-track { height:6px; border-radius:8px; background: transparent; }
+    input[type="range"]::-moz-range-track { height:6px; border-radius:8px; background: transparent; }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
       width:20px; height:20px; border-radius:50%;
@@ -101,21 +98,21 @@
       text-align: center;
     }
 
-    /* שני סרטונים זה לצד זה — בלי להקטין את המקורי */
+    /* שני סרטונים זה לצד זה — שומרים על גודל המקורי של הווידאו הראשי */
     .videos-wrap{
       display:flex;
       gap:12px;
       align-items:flex-start;
       flex-wrap: nowrap;       /* לא לרדת שורה */
-      overflow-x: auto;        /* אם אין מקום — גלילה אופקית */
+      overflow-x: auto;        /* גלילה אופקית במידת הצורך */
       overflow-y: hidden;
       padding-bottom: 6px;
     }
     .video-col{
-      flex: 0 0 640px;         /* רוחב קבוע יחסית גדול כדי שהמקורי לא יקטן */
+      flex: 0 0 640px;         /* רוחב לא קטן כדי שאחד לא יקטן */
       min-width: 640px;
     }
-    @media (max-width: 700px){
+    @media (max-width: 720px){
       .video-col{ flex-basis: 92vw; min-width: 92vw; } /* מובייל */
     }
 
@@ -140,7 +137,7 @@
   <div id="introScreen" class="card">
     <h1>הנחיות לפתיחת הניסוי</h1>
     <p class="muted" style="margin-top:8px;font-size:3.2rem;">
-      אנא צפו בסרטון זה מתחילתו עד סופו.
+      אנא הזינו את מספר הנבדק (חובה) ואז בחרו איזה סרטון פתיחה להפעיל.
       לאחר הלחיצה על הכפתור הסרטון יופיע במסך מלא, ובסיומו תועברו אוטומטית לשלב הבא.
     </p>
 
@@ -174,20 +171,20 @@
     </p>
 
     <div class="row" style="margin:8px 0">
-      <button id="playBtn" class="btn">הרץ סרטון</button>
+      <button id="playBtn" class="btn" disabled>הרץ סרטון</button>
     </div>
 
     <!-- שני סרטונים (השני מופיע רק בלמידה 1) -->
     <div id="videosWrap" class="videos-wrap">
       <div class="video-col">
-        <video id="vid" controls playsinline>
+        <video id="vid" controls playsinline preload="auto">
           הדפדפן שלך לא תומך בווידאו.
         </video>
       </div>
 
       <div id="sideVideoCol" class="video-col" style="display:none;">
         <div id="sideVideoTitle" class="side-title"></div>
-        <video id="vidSide" controls playsinline>
+        <video id="vidSide" playsinline preload="auto" muted>
           הדפדפן שלך לא תומך בווידאו.
         </video>
       </div>
@@ -217,13 +214,13 @@
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      // === Supabase ===
+      // === Supabase === (אשראי/מפתח כפי שהיה)
       const SUPABASE_URL = 'https://dbintxdkurajdgimcdeb.supabase.co';
       const SUPABASE_ANON_KEY =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiaW50eGRrdXJhamRnaW1jZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc1NTAsImV4cCI6MjA3NDEwMzU1MH0.usRUg5lTw96BaEydMV9wl8vtuZ3-e0MZA1UUMgh5YaA';
       const RATINGS_TABLE = 'ratings';
 
-      // סרטון פתיחה (בחירה בין שניים)
+      // סרטוני פתיחה — שני כפתורים
       const INTRO_VIDEO_1 = 'https://portnoys.github.io/Naama/Lecture_research.mp4';
       const INTRO_VIDEO_2 = 'https://portnoys.github.io/Naama/Lecture_balance.mp4';
 
@@ -237,7 +234,7 @@
         { url: 'https://portnoys.github.io/Naama/סרט 6 למידה 4.4.mp4',  score: 4.4 }
       ];
 
-      // סרטון צד ללמידה 1 (אישה בת 75)
+      // סרטון צד ללמידה 1 (אישה בת 75) - עדכני כאן אם צריך
       const SIDE_LEARNING1_VIDEO = 'https://portnoys.github.io/Naama/אישה בת 75.mp4';
       const SIDE_LEARNING1_TITLE = 'אישה בת 75';
 
@@ -246,7 +243,7 @@
         { url: 'https://portnoys.github.io/Naama/אימון 1 עם משוב 8.0.mp4',  score: 8.0 },
         { url: 'https://portnoys.github.io/Naama/אימון 2 עם משוב 1.2.mp4',  score: 1.2 },
         { url: 'https://portnoys.github.io/Naama/אימון 3 עם משוב 4.9.mp4',  score: 4.9 },
-        { url: 'https://portnoys.github.io/Naama/אימון 4 עם משוב 9.9.mp4',  score: 9.9 },
+        { url: 'https://portnoys.github.io/Naama/Naama/אימון 4 עם משוב 9.9.mp4',  score: 9.9 }, // אם שם אחר - עדכני
         { url: 'https://portnoys.github.io/Naama/אימון 5 עם משוב 2.5.mp4',  score: 2.5 },
         { url: 'https://portnoys.github.io/Naama/אימון 6 עם משוב 6.1.mp4',  score: 6.1 },
         { url: 'https://portnoys.github.io/Naama/אימון 7 עם משוב 4.5.mp4',  score: 4.5 },
@@ -289,14 +286,8 @@
       const submitBtn          = document.getElementById('submitBtn');
       const msg                = document.getElementById('msg');
 
-      // אם כבר יש PID מסשן קודם באותו טאב – נטען ונאפשר כפתורים
-      let participantId = sessionStorage.getItem('participant_id') || '';
-      if (participantId) {
-        participantIntro.value = participantId;
-        startIntroBtn1.disabled = false;
-        startIntroBtn2.disabled = false;
-        pidMsg.textContent = 'נשמר ✔';
-      }
+      // חשוב: לא נשמור מספר נבדק ב-sessionStorage כדי שאחרי refresh הוא יימחק — המשתנה יחזיק אותו בזמן שהדף פתוח
+      let participantId = ''; // יאוחסן כאן אחרי אישור
 
       // שלבים: 'intro' -> 'learning' -> 'feedback' -> 'main'
       let phase = 'intro';
@@ -353,6 +344,9 @@
           try { vidSide.pause(); } catch(e){}
           vidSide.removeAttribute('src');
           vidSide.load();
+        } else {
+          // וודא שהוידאו הצדדי יהיה muted ובלי controls כדי למנוע הפרעות
+          try { vidSide.muted = true; vidSide.controls = false; } catch(e){}
         }
       }
       function syncToMaster(master, slave){
@@ -360,12 +354,12 @@
         const drift = slave.currentTime - master.currentTime;
         if (Math.abs(drift) > 0.12) {
           syncing = true;
-          slave.currentTime = master.currentTime;
+          try { slave.currentTime = master.currentTime; } catch(e){}
           syncing = false;
         }
       }
 
-      // PID חייב להישמר לפני שאפשר להמשיך
+      // לחצן אישור PID בשקופית הפתיחה - חייב לפני הפעלת כל אחד הכפתורים
       confirmPidBtnIntro.addEventListener('click', () => {
         const v = (participantIntro.value || '').trim();
         if (!v) {
@@ -373,12 +367,13 @@
           return;
         }
         participantId = v;
-        sessionStorage.setItem('participant_id', participantId);
+        // לא שומרים ב-sessionStorage כדי שהמידע ימחק ברענון
+        pidMsg.textContent = 'נשמר (בזכרון הדף) ✔';
         startIntroBtn1.disabled = false;
         startIntroBtn2.disabled = false;
-        pidMsg.textContent = 'נשמר ✔';
       });
 
+      // עדכון VAS כשזז
       ['input','change'].forEach(ev => {
         ratingRange.addEventListener(ev, () => {
           if (phase === 'feedback' || phase === 'main') {
@@ -415,8 +410,15 @@
             setDualMode(true);
             sideVideoTitle.textContent = SIDE_LEARNING1_TITLE;
             vidSide.src = SIDE_LEARNING1_VIDEO;
+
+            // בקשה לטעינה מוקדמת
+            try { vid.preload = 'auto'; vidSide.preload = 'auto'; vidSide.muted = true; vidSide.controls = false; } catch(e){}
+            // playBtn צריך להיות פעיל כדי שהמשתמש יוכל להתחיל ניגון
+            playBtn.disabled = false;
           } else {
             setDualMode(false);
+            try { vid.preload = 'auto'; } catch(e){}
+            playBtn.disabled = false;
           }
 
         } else if (phase === 'feedback') {
@@ -427,6 +429,7 @@
           ratingRange.disabled = false;
           setRating(5.0);
           submitBtn.textContent = 'המשך';
+          playBtn.disabled = false;
 
         } else { // main
           const url = MAIN_VIDEOS[mainIndex];
@@ -436,13 +439,51 @@
           ratingRange.disabled = false;
           setRating(5.0);
           submitBtn.textContent = 'שליחת ציון';
+          playBtn.disabled = false;
         }
       }
 
-      // הפעלת סרטון פתיחה לפי בחירה (שני כפתורים) — רק אם יש PID
-      function startIntroWithVideo(introUrl){
-        if (!participantId) return;
+      // מחכים ל-canplay/canplaythrough עם timeout
+      function waitForReady(video, timeout = 7000) {
+        return new Promise((resolve) => {
+          if (!video) return resolve();
+          try {
+            if (video.readyState >= 3) return resolve();
+          } catch(e){ return resolve(); }
 
+          let done = false;
+          const onReady = () => {
+            if (done) return;
+            done = true;
+            cleanup();
+            resolve();
+          };
+          const onTimeout = () => {
+            if (done) return;
+            done = true;
+            cleanup();
+            resolve();
+          };
+          const cleanup = () => {
+            try { video.removeEventListener('canplay', onReady); } catch(e){}
+            try { video.removeEventListener('canplaythrough', onReady); } catch(e){}
+          };
+          try {
+            video.addEventListener('canplay', onReady);
+            video.addEventListener('canplaythrough', onReady);
+          } catch(e){ resolve(); }
+          setTimeout(onTimeout, timeout);
+        });
+      }
+
+      // הפעלת סרטון פתיחה לפי בחירה (שני כפתורים) — רק אם אישרת PID
+      function startIntroWithVideo(introUrl){
+        if (!participantId) {
+          pidMsg.textContent = 'נא לאשר מספר נבדק קודם';
+          return;
+        }
+
+        // מסתירים את שקופית הפתיחה ומראים את הכרטיס הראשי
         introScreen.style.display = 'none';
         mainCard.style.display = '';
 
@@ -456,6 +497,8 @@
         setDualMode(false);
 
         vid.src = introUrl;
+        try { vid.preload = 'auto'; } catch(e){}
+
         vid.currentTime = 0;
 
         const playPromise = vid.play();
@@ -463,6 +506,7 @@
           playPromise.catch(() => {});
         }
 
+        // בקשה ל-fullscreen
         if (vid.requestFullscreen) {
           vid.requestFullscreen().catch(() => {});
         } else if (vid.webkitRequestFullscreen) {
@@ -475,26 +519,37 @@
       startIntroBtn1.addEventListener('click', () => startIntroWithVideo(INTRO_VIDEO_1));
       startIntroBtn2.addEventListener('click', () => startIntroWithVideo(INTRO_VIDEO_2));
 
-      // כפתור ניגון/ניגון מחדש (שני סרטונים מסונכרנים בלמידה 1)
-      playBtn.addEventListener('click', async () => {
-        vid.currentTime = 0;
-
+      // כפתור ניגון/ניגון מחדש (משופר להסבר בעיות סנכרון)
+      document.getElementById('playBtn').addEventListener('click', async () => {
+        // אתחל זמני
+        try { vid.currentTime = 0; } catch(e){}
         if (dualMode) {
-          vidSide.currentTime = 0;
+          try { vidSide.currentTime = 0; } catch(e){}
+
+          // נחכה ששניהם יהיו מוכנים או עד timeout
+          await Promise.all([waitForReady(vid, 7000), waitForReady(vidSide, 7000)]);
+
+          // נסיון להריץ במקביל — אם נדחה, ננסה מאסטר ואז צדדי
           try {
             await Promise.all([vid.play(), vidSide.play()]);
-          } catch(e) {
-            try { vid.play().catch(()=>{}); } catch(_){}
-            try { vidSide.play().catch(()=>{}); } catch(_){}
+          } catch (e) {
+            try { await vid.play(); } catch(e2){}
+            await new Promise(r => setTimeout(r, 120));
+            try { await vidSide.play(); } catch(e3){}
           }
         } else {
-          vid.play().catch(()=>{});
+          try {
+            await waitForReady(vid, 7000);
+            await vid.play();
+          } catch(e){
+            try { vid.play().catch(()=>{}); } catch(_) {}
+          }
         }
 
         playBtn.textContent = 'הרץ שוב';
       });
 
-      // סנכרון play/pause/seek בין הסרטונים
+      // סנכרון play/pause/seek בין הסרטונים (כשהסרטון הצד קיים)
       vid.addEventListener('play', () => { if (dualMode) vidSide.play().catch(()=>{}); });
       vid.addEventListener('pause', () => { if (dualMode) { try { vidSide.pause(); } catch(e){} } });
 
@@ -504,14 +559,14 @@
       vid.addEventListener('seeking', () => {
         if (dualMode && !syncing) {
           syncing = true;
-          vidSide.currentTime = vid.currentTime;
+          try { vidSide.currentTime = vid.currentTime; } catch(e){}
           syncing = false;
         }
       });
       vidSide.addEventListener('seeking', () => {
         if (dualMode && !syncing) {
           syncing = true;
-          vid.currentTime = vidSide.currentTime;
+          try { vid.currentTime = vidSide.currentTime; } catch(e){}
           syncing = false;
         }
       });
@@ -557,7 +612,7 @@
         }
       });
 
-      // שמירה ל-Supabase
+      // שמירה ל-Supabase (כפי שהיה)
       async function supabaseInsert(row) {
         try {
           const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
@@ -680,6 +735,15 @@
 
       // init – ערך ראשוני ל-VAS
       setRating(5.0);
+
+      // חשוב: על כל טעינת דף (refresh) — נמחק את ערך השדה כדי שאם היה שם משהו הוא יימחק
+      // (וזה מבטיח שהמשתמש יצטרך להזין מספר חדש)
+      participantIntro.value = '';
+      pidMsg.textContent = '';
+      startIntroBtn1.disabled = true;
+      startIntroBtn2.disabled = true;
+      // playBtn יהיה כבוי עד שנכנס לשלב המתאים
+      playBtn.disabled = true;
     });
   </script>
 </body>
