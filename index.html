@@ -45,6 +45,7 @@
       background:#000;
       aspect-ratio:16/9;
       display:block;
+      cursor:pointer; /* כדי שיהיה ברור שאפשר ללחוץ לניגון */
     }
 
     .vas-wrap{ max-width:420px; margin:0 auto; }
@@ -66,14 +67,6 @@
 
     .vas-labels{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:6px; font-size:0.95rem; color:#c9d4e6; text-align:center; }
 
-    .side-caption{
-      text-align:center;
-      font-weight:800;
-      font-size:1.25rem;
-      margin:12px 0;
-      color:#e6eef9;
-    }
-
     @media (max-width:720px){
       .vas-wrap{ max-width:92vw; }
       video{ width:100%; }
@@ -85,7 +78,6 @@
   <!-- דף שער: לוגו + PID -->
   <div id="coverScreen" class="card">
     <div style="display:flex;justify-content:center;margin-bottom:18px;">
-      <!-- עדכני את הנתיב לפי איפה שהלוגו יושב באתר שלך -->
       <img src="OccTherapyLogo_HEBENG_NEG.png" alt="לוגו אוניברסיטת תל אביב"
            style="max-width:900px;width:50%;height:auto;" />
     </div>
@@ -111,7 +103,7 @@
   <div id="introChoiceScreen" class="card" style="display:none;">
     <h1>לפני השלב הבא</h1>
     <p class="muted" style="margin-top:8px;font-size:2.2rem;">
-      עכשיו בחרי איזו מצגת להפעיל. הסרטון יוצג במסך מלא — ובסיומו תועברי לניסוי הראשי.
+      עכשיו בחרו איזו מצגת להפעיל. הסרטון יוצג במסך מלא..
     </p>
 
     <div class="row center-row" style="margin-top:18px;">
@@ -127,18 +119,15 @@
     </div>
 
     <p class="muted" style="margin-top:8px">
-      יש לצפות בסרטון עד הסוף. לאחר הלחיצה על הכפתור עוברים אוטומטית לסרטון הבא.
+      יש לצפות בסרטון עד הסוף. לאחר השליחה עוברים אוטומטית לסרטון הבא.
+      <br/>
+      ניגון מתבצע בלחיצה על הווידאו.
     </p>
 
-    <div class="row" style="margin:8px 0">
-      <button id="playBtn" class="btn" disabled>הרץ סרטון</button>
-    </div>
-
     <div>
-      <video id="vid" controls playsinline preload="auto"></video>
+      <!-- כל הסרטונים בלי קול -->
+      <video id="vid" controls playsinline preload="auto" muted></video>
     </div>
-
-    <div id="femaleCaption" class="side-caption" style="display:none;">אישה בת 75</div>
 
     <div class="hr"></div>
 
@@ -170,9 +159,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const RATINGS_TABLE = 'ratings';
 
   // ===== בסיס נתיב לקבצים החדשים (של הבחינה) =====
-  // אם אצלך זה תיקייה אחרת/שם אחר - עדכני כאן פעם אחת.
   const BASE_URL = 'https://portnoys.github.io/Naama/';
-  const EXAM_EXT = '.MP4'; // לפי מה שביקשת: להוסיף .MP4
+  const EXAM_EXT = '.MP4';
 
   // ===== מצגות =====
   const INTRO_VIDEO_1 = 'https://portnoys.github.io/Naama/Lecture_research.mp4';
@@ -204,35 +192,11 @@ window.addEventListener('DOMContentLoaded', () => {
     { url: 'https://portnoys.github.io/Naama/אימון 12 עם משוב 2.8.mp4', score: 2.8 }
   ];
 
-  // ===== שלב בחינה (26 סרטים) לפי התמונה =====
-  // כאן "שמות הקבצים" בדיוק כמו בתמונה, רק + .MP4
+  // ===== שלב בחינה (26 סרטים) =====
   const EXAM_FILES_IN_ORDER = [
-    '27_8.6',
-    '25_4.4',
-    '65_8.1',
-    '27_8.4',
-    '79_1.5',
-    '74_8.1',
-    '65_1.4',
-    '22_9.8',
-    '35_1.6',
-    '67_4.7',
-    '16_4.8',
-    '55_6.6',
-    '77_9.6',
-    '70_1.4',
-    '70_4.4',
-    '32_1.2',
-    '16_5.9',
-    '66_5.7',
-    '72_4.4',
-    '70_4.3',
-    '50_1.6',
-    '18_4.9',
-    '67_4.8',
-    '35_1.4',
-    '74_7.6',
-    '32_2.0'
+    '27_8.6','25_4.4','65_8.1','27_8.4','79_1.5','74_8.1','65_1.4','22_9.8','35_1.6','67_4.7',
+    '16_4.8','55_6.6','77_9.6','70_1.4','70_4.4','32_1.2','16_5.9','66_5.7','72_4.4','70_4.3',
+    '50_1.6','18_4.9','67_4.8','35_1.4','74_7.6','32_2.0'
   ];
 
   const EXAM_VIDEOS = EXAM_FILES_IN_ORDER.map(name => ({
@@ -248,6 +212,9 @@ window.addEventListener('DOMContentLoaded', () => {
     'https://portnoys.github.io/Naama/4.mp4'
   ];
 
+  // ===== הגבלת זמן סרטון =====
+  const MAX_SECONDS_PER_VIDEO = 10;
+
   // ===== DOM =====
   const coverScreen       = document.getElementById('coverScreen');
   const introChoiceScreen = document.getElementById('introChoiceScreen');
@@ -261,9 +228,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const startIntroBtn2    = document.getElementById('startIntroBtn2');
 
   const titleEl           = document.getElementById('title');
-  const playBtn           = document.getElementById('playBtn');
   const vid               = document.getElementById('vid');
-  const femaleCaption     = document.getElementById('femaleCaption');
 
   const ratingRange       = document.getElementById('ratingRange');
   const ratingVal         = document.getElementById('ratingVal');
@@ -273,7 +238,10 @@ window.addEventListener('DOMContentLoaded', () => {
   // reset
   participantCover.value = '';
   pidMsg.textContent = '';
-  playBtn.disabled = true;
+
+  // תמיד בלי קול
+  vid.muted = true;
+  vid.volume = 0;
 
   // ===== מצב =====
   let participantId = '';
@@ -288,6 +256,37 @@ window.addEventListener('DOMContentLoaded', () => {
   let videoCompleted = false;
   let feedbackReveal = false;
   let vasChanged = false;
+
+  // ===== חיתוך ב-10 שניות =====
+  let cutoffSeconds = MAX_SECONDS_PER_VIDEO;
+  let cutoffArmed = false;
+
+  function disarmCutoff(){
+    cutoffArmed = false;
+  }
+
+  function armCutoff(){
+    // אם הסרטון קצר מ-10 שניות – הוא יסתיים טבעית קודם
+    // ואם ארוך יותר – נחתוך ב-10.0
+    const dur = Number(vid.duration);
+    if (Number.isFinite(dur) && dur > 0) {
+      cutoffSeconds = Math.min(MAX_SECONDS_PER_VIDEO, dur);
+    } else {
+      cutoffSeconds = MAX_SECONDS_PER_VIDEO;
+    }
+    cutoffArmed = true;
+  }
+
+  function forceEndAtCutoff(){
+    if (!cutoffArmed) return;
+    if (vid.currentTime >= cutoffSeconds - 0.03) { // מרווח קטן כדי לא "לפספס"
+      cutoffArmed = false;
+      try { vid.pause(); } catch(e){}
+      // ניישר לזמן חיתוך כדי שלא יהיה "עוד רגע" של וידאו
+      try { vid.currentTime = cutoffSeconds; } catch(e){}
+      handleVideoEnd('cutoff');
+    }
+  }
 
   function showOnly(screen){
     coverScreen.style.display = (screen === 'cover') ? '' : 'none';
@@ -309,10 +308,10 @@ window.addEventListener('DOMContentLoaded', () => {
   function resetStepUI(){
     videoCompleted = false;
     submitBtn.disabled = true;
-    playBtn.textContent = 'הרץ סרטון';
     msg.innerHTML = '';
     feedbackReveal = false;
     vasChanged = false;
+    disarmCutoff();
   }
 
   function setTitles(){
@@ -328,6 +327,10 @@ window.addEventListener('DOMContentLoaded', () => {
     showOnly('main');
     setTitles();
 
+    // תמיד בלי קול
+    vid.muted = true;
+    vid.volume = 0;
+
     if (phase === 'learning') {
       const vobj = LEARNING_VIDEOS[learnIndex];
       vid.src = vobj.url;
@@ -335,10 +338,8 @@ window.addEventListener('DOMContentLoaded', () => {
       // למידה: ללא דירוג
       ratingRange.disabled = true;
       submitBtn.textContent = 'המשך';
-      playBtn.disabled = false;
 
       setRating(vobj.score); // רק להצגה/אחידות (לא ניתן לשינוי)
-      femaleCaption.style.display = (learnIndex === 0) ? '' : 'none';
 
     } else if (phase === 'feedback') {
       const vobj = FEEDBACK_VIDEOS[feedbackIndex];
@@ -348,8 +349,6 @@ window.addEventListener('DOMContentLoaded', () => {
       ratingRange.disabled = false;
       setRating(5.0);
       submitBtn.textContent = 'המשך';
-      playBtn.disabled = false;
-      femaleCaption.style.display = 'none';
 
     } else if (phase === 'exam') {
       const vobj = EXAM_VIDEOS[examIndex];
@@ -359,16 +358,12 @@ window.addEventListener('DOMContentLoaded', () => {
       ratingRange.disabled = false;
       setRating(5.0);
       submitBtn.textContent = 'שליחת ציון והמשך';
-      playBtn.disabled = false;
-      femaleCaption.style.display = 'none';
 
     } else if (phase === 'intro') {
-      // מצגת: בלי כפתורי ניגון/דירוג (ניגון אוטומטי במסך מלא)
+      // מצגת: בלי דירוג/שליחה
       ratingRange.disabled = true;
       submitBtn.disabled = true;
       submitBtn.textContent = 'המשך';
-      playBtn.disabled = true;
-      femaleCaption.style.display = 'none';
 
     } else { // main
       vid.src = MAIN_VIDEOS[mainIndex];
@@ -376,8 +371,6 @@ window.addEventListener('DOMContentLoaded', () => {
       ratingRange.disabled = false;
       setRating(5.0);
       submitBtn.textContent = 'שליחת ציון';
-      playBtn.disabled = false;
-      femaleCaption.style.display = 'none';
     }
   }
 
@@ -409,13 +402,22 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCurrentVideo();
   });
 
-  // ניגון סרטון רגיל
-  playBtn.addEventListener('click', async () => {
+  // ניגון ע"י לחיצה על הווידאו עצמו
+  vid.addEventListener('click', async () => {
     if (!participantId) return;
+
+    // תמיד בלי קול
+    vid.muted = true;
+    vid.volume = 0;
+
+    // התחלה מחדש
     try { vid.currentTime = 0; } catch(e){}
-    try { await vid.play(); }
-    catch(e){ try { vid.play().catch(()=>{}); } catch(_) {} }
-    playBtn.textContent = 'הרץ שוב';
+
+    try {
+      await vid.play();
+    } catch(e) {
+      try { vid.play().catch(() => {}); } catch(_) {}
+    }
   });
 
   // שמירה ל-Supabase
@@ -435,8 +437,9 @@ window.addEventListener('DOMContentLoaded', () => {
     } catch {}
   }
 
-  // כשהווידאו נגמר
-  vid.addEventListener('ended', () => {
+  function handleVideoEnd(source){
+    // source: 'natural' | 'cutoff'
+    if (videoCompleted) return; // הגנה מפני ירי כפול
     videoCompleted = true;
 
     if (phase === 'intro') {
@@ -457,6 +460,25 @@ window.addEventListener('DOMContentLoaded', () => {
       // learning / exam / main
       submitBtn.disabled = false;
     }
+  }
+
+  // כשהווידאו נגמר טבעית
+  vid.addEventListener('ended', () => {
+    disarmCutoff();
+    handleVideoEnd('natural');
+  });
+
+  // כשהמטא-דאטה נטענת (יש duration) – נקים חיתוך ל-10 שניות
+  vid.addEventListener('loadedmetadata', () => {
+    // תמיד בלי קול
+    vid.muted = true;
+    vid.volume = 0;
+    armCutoff();
+  });
+
+  // בזמן ניגון – נבדוק אם עברנו 10 שניות ונחתוך
+  vid.addEventListener('timeupdate', () => {
+    forceEndAtCutoff();
   });
 
   // בחירת מצגת (רק אחרי שלב הבחינה)
@@ -470,12 +492,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
     ratingRange.disabled = true;
     submitBtn.disabled = true;
-    playBtn.disabled = true;
-    femaleCaption.style.display = 'none';
 
     vid.src = introUrl;
+
+    // תמיד בלי קול
+    vid.muted = true;
+    vid.volume = 0;
+
     try { vid.preload = 'auto'; } catch(e){}
-    vid.currentTime = 0;
+    try { vid.currentTime = 0; } catch(e){}
 
     const p = vid.play();
     if (p && p.catch) p.catch(() => {});
@@ -525,7 +550,9 @@ window.addEventListener('DOMContentLoaded', () => {
             video_index: feedbackIndex + 1,
             phase: 'feedback',
             true_score: vobj.score,
-            endedOnce: true
+            endedOnce: true,
+            // תיעוד האם נחתך ב-10 שניות או נגמר טבעית:
+            end_rule: (cutoffSeconds < MAX_SECONDS_PER_VIDEO) ? 'natural(shorter_than_10s)' : 'max_10s'
           }
         };
 
@@ -582,7 +609,8 @@ window.addEventListener('DOMContentLoaded', () => {
           video_index: examIndex + 1,
           phase: 'exam',
           file_name: vobj.file,
-          endedOnce: true
+          endedOnce: true,
+          end_rule: (cutoffSeconds < MAX_SECONDS_PER_VIDEO) ? 'natural(shorter_than_10s)' : 'max_10s'
         }
       };
 
@@ -611,7 +639,8 @@ window.addEventListener('DOMContentLoaded', () => {
           pageHref: location.href,
           video_index: mainIndex + 1,
           phase: 'main',
-          endedOnce: true
+          endedOnce: true,
+          end_rule: (cutoffSeconds < MAX_SECONDS_PER_VIDEO) ? 'natural(shorter_than_10s)' : 'max_10s'
         }
       };
 
@@ -622,7 +651,6 @@ window.addEventListener('DOMContentLoaded', () => {
         loadCurrentVideo();
       } else {
         submitBtn.disabled = true;
-        playBtn.disabled = true;
         msg.textContent = 'תודה! סיימת את כל הסרטונים.';
       }
       return;
