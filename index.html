@@ -118,9 +118,7 @@
     </div>
 
     <p class="muted" style="margin-top:8px">
-      יש לצפות בסרטון עד הסוף. לאחר השליחה עוברים אוטומטית לסרטון הבא.
-      <br/>
-      ניגון מתבצע בלחיצה על הווידאו.
+      יש לצפות בסרטון עד הסוף. ניגון מתבצע בלחיצה על הווידאו.
     </p>
 
     <div>
@@ -142,12 +140,14 @@
       </div>
     </div>
 
-    <div style="margin-top:14px;">
-      <button id="submitBtn" class="btn" disabled>שליחת ציון</button>
-    </div>
+<div class="row" style="margin-top:18px; align-items:center; justify-content:center;">
+  <button id="submitBtn" class="btn" disabled>שליחת ציון</button>
 
-    <div id="msg" style="margin-top:14px"></div>
+  <div id="msg"
+       style="margin-right:20px; font-size:1.6rem; font-weight:700;">
   </div>
+</div>
+
 
 <script>
 window.addEventListener('DOMContentLoaded', () => {
@@ -562,7 +562,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         msg.innerHTML =
           `<div style="font-size:2rem;font-weight:700;margin-top:10px;">
-             הציון האמיתי של סרטון זה הוא: ${vobj.score.toFixed(1)}
+             ⭐ הציון האמיתי של סרטון זה הוא: ${vobj.score.toFixed(1)}
            </div>`;
 
         submitBtn.textContent =
