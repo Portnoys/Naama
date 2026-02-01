@@ -45,7 +45,7 @@
       background:#000;
       aspect-ratio:16/9;
       display:block;
-      cursor:pointer; /* כדי שיהיה ברור שאפשר ללחוץ לניגון */
+      cursor:pointer;
     }
 
     .vas-wrap{ max-width:420px; margin:0 auto; }
@@ -140,21 +140,38 @@
       </div>
     </div>
 
-<div class="row" style="margin-top:18px; align-items:center; justify-content:center;">
-  <button id="submitBtn" class="btn" disabled>שליחת ציון</button>
+    <div class="row" style="margin-top:18px; align-items:center; justify-content:center;">
+      <button id="submitBtn" class="btn" disabled>שליחת ציון</button>
 
-  <div id="msg"
-       style="margin-right:20px; font-size:1.6rem; font-weight:700;">
+      <div id="msg"
+           style="margin-right:20px; font-size:1.6rem; font-weight:700;">
+      </div>
+    </div>
   </div>
-</div>
-
 
 <script>
 window.addEventListener('DOMContentLoaded', () => {
-  // ===== Supabase =====
-  const SUPABASE_URL = 'https://zdpgbhurcojrciofrrwn.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkcGdiaHVyY29qcmNpb2ZycnduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzczMjIsImV4cCI6MjA4NTUxMzMyMn0.KZciS2ELN1xlbjvFjS6mFvBUM4fvaNsHs0PRqXoHBeU';
-  const RATINGS_TABLE = 'ratings';
+
+  // =========================
+  // יעד שמירה: Google Sheet דרך Apps Script Web App
+  // =========================
+  const GOOGLE_SCRIPT_URL =
+    'https://script.google.com/macros/s/AKfycbxOthik6r9PKVSn0ASjLt4uPsg62i0k6QIdw56IR-5fCocVUfn1avp7Y03Bwb1Tuqsymw/exec';
+
+  async function sheetInsert(row) {
+    try {
+      // חשוב: no-cors כדי להימנע מבעיות CORS מול script.google.com
+      // (לא נקבל תשובה/סטטוס, אבל הבקשה תישלח)
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(row)
+      });
+    } catch {
+      // אפשר להשאיר ריק או להציג הודעה
+    }
+  }
 
   // ===== בסיס נתיב לקבצים החדשים (של הבחינה) =====
   const BASE_URL = 'https://portnoys.github.io/Naama/';
@@ -264,8 +281,6 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function armCutoff(){
-    // אם הסרטון קצר מ-10 שניות – הוא יסתיים טבעית קודם
-    // ואם ארוך יותר – נחתוך ב-10.0
     const dur = Number(vid.duration);
     if (Number.isFinite(dur) && dur > 0) {
       cutoffSeconds = Math.min(MAX_SECONDS_PER_VIDEO, dur);
@@ -277,10 +292,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function forceEndAtCutoff(){
     if (!cutoffArmed) return;
-    if (vid.currentTime >= cutoffSeconds - 0.03) { // מרווח קטן כדי לא "לפספס"
+    if (vid.currentTime >= cutoffSeconds - 0.03) {
       cutoffArmed = false;
       try { vid.pause(); } catch(e){}
-      // ניישר לזמן חיתוך כדי שלא יהיה "עוד רגע" של וידאו
       try { vid.currentTime = cutoffSeconds; } catch(e){}
       handleVideoEnd('cutoff');
     }
@@ -325,7 +339,6 @@ window.addEventListener('DOMContentLoaded', () => {
     showOnly('main');
     setTitles();
 
-    // תמיד בלי קול
     vid.muted = true;
     vid.volume = 0;
 
@@ -333,17 +346,15 @@ window.addEventListener('DOMContentLoaded', () => {
       const vobj = LEARNING_VIDEOS[learnIndex];
       vid.src = vobj.url;
 
-      // למידה: ללא דירוג
       ratingRange.disabled = true;
       submitBtn.textContent = 'המשך';
 
-      setRating(vobj.score); // רק להצגה/אחידות (לא ניתן לשינוי)
+      setRating(vobj.score);
 
     } else if (phase === 'feedback') {
       const vobj = FEEDBACK_VIDEOS[feedbackIndex];
       vid.src = vobj.url;
 
-      // תרגול עם משוב: צריך לדרג
       ratingRange.disabled = false;
       setRating(5.0);
       submitBtn.textContent = 'המשך';
@@ -352,13 +363,11 @@ window.addEventListener('DOMContentLoaded', () => {
       const vobj = EXAM_VIDEOS[examIndex];
       vid.src = vobj.url;
 
-      // בחינה: צריך לדרג, אין משוב
       ratingRange.disabled = false;
       setRating(5.0);
       submitBtn.textContent = 'שליחת ציון והמשך';
 
     } else if (phase === 'intro') {
-      // מצגת: בלי דירוג/שליחה
       ratingRange.disabled = true;
       submitBtn.disabled = true;
       submitBtn.textContent = 'המשך';
@@ -404,11 +413,9 @@ window.addEventListener('DOMContentLoaded', () => {
   vid.addEventListener('click', async () => {
     if (!participantId) return;
 
-    // תמיד בלי קול
     vid.muted = true;
     vid.volume = 0;
 
-    // התחלה מחדש
     try { vid.currentTime = 0; } catch(e){}
 
     try {
@@ -418,33 +425,14 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // שמירה ל-Supabase
-  async function supabaseInsert(row) {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${RATINGS_TABLE}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(row)
-      });
-      if (!res.ok) return;
-    } catch {}
-  }
-
   function handleVideoEnd(source){
-    // source: 'natural' | 'cutoff'
-    if (videoCompleted) return; // הגנה מפני ירי כפול
+    if (videoCompleted) return;
     videoCompleted = true;
 
     if (phase === 'intro') {
       if (document.fullscreenElement && document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});
       }
-      // אחרי המצגת -> ניסוי ראשי
       phase = 'main';
       mainIndex = 0;
       loadCurrentVideo();
@@ -452,29 +440,23 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     if (phase === 'feedback') {
-      // תאפשרי המשך רק אחרי שהוזז VAS
       if (vasChanged && !feedbackReveal) submitBtn.disabled = false;
     } else {
-      // learning / exam / main
       submitBtn.disabled = false;
     }
   }
 
-  // כשהווידאו נגמר טבעית
   vid.addEventListener('ended', () => {
     disarmCutoff();
     handleVideoEnd('natural');
   });
 
-  // כשהמטא-דאטה נטענת (יש duration) – נקים חיתוך ל-10 שניות
   vid.addEventListener('loadedmetadata', () => {
-    // תמיד בלי קול
     vid.muted = true;
     vid.volume = 0;
     armCutoff();
   });
 
-  // בזמן ניגון – נבדוק אם עברנו 10 שניות ונחתוך
   vid.addEventListener('timeupdate', () => {
     forceEndAtCutoff();
   });
@@ -493,7 +475,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     vid.src = introUrl;
 
-    // תמיד בלי קול
     vid.muted = true;
     vid.volume = 0;
 
@@ -549,12 +530,11 @@ window.addEventListener('DOMContentLoaded', () => {
             phase: 'feedback',
             true_score: vobj.score,
             endedOnce: true,
-            // תיעוד האם נחתך ב-10 שניות או נגמר טבעית:
             end_rule: (cutoffSeconds < MAX_SECONDS_PER_VIDEO) ? 'natural(shorter_than_10s)' : 'max_10s'
           }
         };
 
-        await supabaseInsert(payload);
+        await sheetInsert(payload);
 
         ratingRange.disabled = true;
         feedbackReveal = true;
@@ -583,7 +563,6 @@ window.addEventListener('DOMContentLoaded', () => {
         feedbackIndex++;
         loadCurrentVideo();
       } else {
-        // מעבר לשלב בחינה
         phase = 'exam';
         examIndex = 0;
         loadCurrentVideo();
@@ -612,13 +591,12 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       };
 
-      await supabaseInsert(payload);
+      await sheetInsert(payload);
 
       if (examIndex < EXAM_VIDEOS.length - 1) {
         examIndex++;
         loadCurrentVideo();
       } else {
-        // אחרי הבחינה -> בחירת מצגת
         showOnly('introChoice');
       }
       return;
@@ -642,7 +620,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       };
 
-      await supabaseInsert(payload);
+      await sheetInsert(payload);
 
       if (mainIndex < MAIN_VIDEOS.length - 1) {
         mainIndex++;
