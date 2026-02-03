@@ -48,7 +48,7 @@
       cursor:pointer;
     }
 
-    .vas-wrap{ max-width:420px; margin:0 auto; }
+    .vas-wrap{ max-width:520px; margin:0 auto; } /* קצת יותר רחב */
     .vas-wrap label{ font-size:1.05rem; }
     #ratingVal{ font-size:1.35rem; font-weight:800; color:#ffd166; }
 
@@ -59,11 +59,20 @@
     }
     input[type="range"]::-webkit-slider-runnable-track{ height:6px; border-radius:8px; background:transparent; }
     input[type="range"]::-moz-range-track{ height:6px; border-radius:8px; background:transparent; }
+
+    /* ⭐ הגדלת ה"סמן" (thumb) כדי שיהיה יותר קל לתפוס */
     input[type="range"]::-webkit-slider-thumb{
-      -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%;
-      background:#fff; border:2px solid #4b8bff; margin-top:-6px; cursor:pointer;
+      -webkit-appearance:none; appearance:none;
+      width:28px; height:28px; border-radius:50%;
+      background:#fff; border:3px solid #4b8bff;
+      margin-top:-11px; cursor:pointer;
+      box-shadow:0 2px 10px rgba(0,0,0,0.35);
     }
-    input[type="range"]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid #4b8bff; cursor:pointer; }
+    input[type="range"]::-moz-range-thumb{
+      width:28px; height:28px; border-radius:50%;
+      background:#fff; border:3px solid #4b8bff; cursor:pointer;
+      box-shadow:0 2px 10px rgba(0,0,0,0.35);
+    }
 
     .vas-labels{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:6px; font-size:0.95rem; color:#c9d4e6; text-align:center; }
 
@@ -98,7 +107,7 @@
     </div>
   </div>
 
-  <!-- מסך הוראות (חדש) -->
+  <!-- מסך הוראות -->
   <div id="instructionsScreen" class="card" style="display:none;">
     <div style="display:flex;justify-content:center;margin-bottom:12px;">
       <img src="OccTherapyLogo_HEBENG_NEG.png" alt="לוגו אוניברסיטת תל אביב"
@@ -163,8 +172,9 @@
       <h1 id="title">צפייה בסרטון</h1>
     </div>
 
-    <p class="muted" style="margin-top:8px">
-      אנא צפו בסרטון עד הסוף. לאחר מכן, הזיזו את הסמן על סקאלה שמתחת לסרטון בין 1 ל10 כדי לדרג את הביצועים. לאחר שתלחצו על "המשך", יוצג הציון האמיתי.
+    <!-- ⭐ כאן יהיה טקסט דינמי לפי שלב -->
+    <p id="instructionsText" class="muted" style="margin-top:8px">
+      <!-- יתעדכן ב-JS -->
     </p>
 
     <div>
@@ -206,8 +216,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   async function sheetInsert(row) {
     try {
-      // חשוב: no-cors כדי להימנע מבעיות CORS מול script.google.com
-      // (לא נקבל תשובה/סטטוס, אבל הבקשה תישלח)
       await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -218,6 +226,13 @@ window.addEventListener('DOMContentLoaded', () => {
       // אפשר להשאיר ריק או להציג הודעה
     }
   }
+
+  // ===== טקסט הוראות דינמי לפי שלב =====
+  const FEEDBACK_TEXT =
+    'אנא צפו בסרטון עד הסוף. לאחר מכן, הזיזו את הסמן על סקאלה שמתחת לסרטון בין 1 ל10 כדי לדרג את הביצועים. לאחר שתלחצו על "המשך", יוצג הציון האמיתי.';
+
+  const EXAM_TEXT =
+    'אנא צפו בסרטון עד הסוף. לאחר מכן, הזיזו את הסמן על סקאלה שמתחת לסרטון בין 1 ל10 כדי לדרג את הביצועים. לאחר שתלחצו על "המשך" תועברו לסרטון הבא (ללא גילוי הציון האמיתי).';
 
   // ===== בסיס נתיב לקבצים החדשים (של הבחינה) =====
   const BASE_URL = 'https://portnoys.github.io/Naama/';
@@ -292,6 +307,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const startIntroBtn2      = document.getElementById('startIntroBtn2');
 
   const titleEl             = document.getElementById('title');
+  const instructionsTextEl  = document.getElementById('instructionsText');
   const vid                 = document.getElementById('vid');
 
   const ratingRange         = document.getElementById('ratingRange');
@@ -384,10 +400,28 @@ window.addEventListener('DOMContentLoaded', () => {
     if (phase === 'main') titleEl.textContent = `צפייה בסרטון ${mainIndex+1}`;
   }
 
+  // ⭐ טקסט הדרכה דינמי: משוב=אימון, בחינה=בדיקה
+  function setInstructionText(){
+    if (!instructionsTextEl) return;
+
+    if (phase === 'feedback') {
+      instructionsTextEl.textContent = FEEDBACK_TEXT;
+    } else if (phase === 'exam') {
+      instructionsTextEl.textContent = EXAM_TEXT;
+    } else if (phase === 'main') {
+      // אם תרצי טקסט אחר לניסוי הראשי, אפשר לשנות כאן
+      instructionsTextEl.textContent = EXAM_TEXT;
+    } else {
+      // למידה/מצגת וכו'
+      instructionsTextEl.textContent = 'אנא צפו בסרטון עד הסוף.';
+    }
+  }
+
   function loadCurrentVideo(){
     resetStepUI();
     showOnly('main');
     setTitles();
+    setInstructionText();
 
     vid.muted = true;
     vid.volume = 0;
@@ -527,6 +561,7 @@ window.addEventListener('DOMContentLoaded', () => {
     showOnly('main');
     resetStepUI();
     setTitles();
+    setInstructionText();
 
     ratingRange.disabled = true;
     submitBtn.disabled = true;
