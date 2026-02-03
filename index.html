@@ -98,6 +98,52 @@
     </div>
   </div>
 
+  <!-- מסך הוראות (חדש) -->
+  <div id="instructionsScreen" class="card" style="display:none;">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;">
+      <img src="OccTherapyLogo_HEBENG_NEG.png" alt="לוגו אוניברסיטת תל אביב"
+           style="max-width:900px;width:30%;height:auto;" />
+    </div>
+
+    <h1>שלום,</h1>
+
+    <div class="muted" style="margin-top:8px;font-size:1.6rem; line-height:1.6;">
+      במהלך השעה הקרובה תעשו היכרות עם מערכת למדידת שווי משקל שמופעלת על ידי שטיחון לחץ.<br><br>
+
+      הציון להערכת שיווי המשקל נע בין 1, שיווי משקל גרוע מאוד ועד 10, שיווי משקל מצויין.
+      האומדן נקבע על פי מידת התנועה של מרכז הלחץ. ככל שיש תנועה רבה יותר, שיווי המשקל פחות טוב.
+      אורך אבחון של שיווי משקל הוא 10 שניות.<br><br>
+
+      תעברו שלושה שלבים:
+      <ol style="margin:10px 22px 0; padding:0; color:#c9d4e6;">
+        <li style="margin:8px 0;">
+          שלב הצגת המערכת שבו תצפו ב-6 סרטונים, כאשר הציון יוצג בתחתית הסרטון.
+        </li>
+        <li style="margin:8px 0;">
+          שלב תרגול, שבו תצפו ב-12 סרטונים ואז תתבקשו להזיז את הסמן על סקאלה בין 1 ל10 כדי לדרג את הביצועים.
+          לאחר שתתנו דירוג, יתגלה הציון האמיתי.
+        </li>
+        <li style="margin:8px 0;">
+          שלב בדיקה שבו תצפו ב26 סרטונים, אותם תתבקשו לדרג (לא יתגלה לכם הציון האמיתי)
+        </li>
+      </ol>
+
+      <br>
+      לאחר מכן תצפו במצגת של כ-13 דקות. בסיום המצגת תתבקשו לדרג 26 סרטונים נוספים.<br><br>
+
+      יש לקחת בחשבון שכל נבדק צולם מספר פעמים בזמנים שונים, כך שיתכנו ביצועים שונים לאותו הנבדק.<br><br>
+
+      נבקשכם שלא לקחת הפסקות ארוכות בזמן דירוג הסרטונים. במידה ויש צורך בהפסקה, השתדלו לקחת אותה לפני או אחרי המצגת.<br><br>
+
+      לאורך כל הדרך ניתן להתקשר לנעמה לקבל הנחיות 0544435433<br><br>
+      תודה.
+    </div>
+
+    <div class="row center-row" style="margin-top:18px;">
+      <button id="continueFromInstructionsBtn" class="btn">המשך</button>
+    </div>
+  </div>
+
   <!-- מסך בחירת מצגת (יופיע רק אחרי שלב הבחינה) -->
   <div id="introChoiceScreen" class="card" style="display:none;">
     <h1>לפני השלב הבא</h1>
@@ -131,7 +177,7 @@
     <div class="vas-wrap">
       <div class="row" style="justify-content:center;">
         <div class="field" style="min-width:220px;">
-          <label for="ratingRange">VAS ציון: <span id="ratingVal">5.0</span></label>
+          <label for="ratingRange"> ציון: <span id="ratingVal">5.0</span></label>
           <input id="ratingRange" type="range" min="0" max="10" step="0.1" value="5.0" />
           <div class="vas-labels" aria-hidden="true">
             <span>טוב</span><span>בינוני</span><span>גרוע</span>
@@ -231,24 +277,27 @@ window.addEventListener('DOMContentLoaded', () => {
   const MAX_SECONDS_PER_VIDEO = 10;
 
   // ===== DOM =====
-  const coverScreen       = document.getElementById('coverScreen');
-  const introChoiceScreen = document.getElementById('introChoiceScreen');
-  const mainCard          = document.getElementById('mainCard');
+  const coverScreen         = document.getElementById('coverScreen');
+  const instructionsScreen  = document.getElementById('instructionsScreen');
+  const introChoiceScreen   = document.getElementById('introChoiceScreen');
+  const mainCard            = document.getElementById('mainCard');
 
-  const participantCover  = document.getElementById('participantCover');
-  const startFromCoverBtn = document.getElementById('startFromCoverBtn');
-  const pidMsg            = document.getElementById('pidMsg');
+  const participantCover    = document.getElementById('participantCover');
+  const startFromCoverBtn   = document.getElementById('startFromCoverBtn');
+  const pidMsg              = document.getElementById('pidMsg');
 
-  const startIntroBtn1    = document.getElementById('startIntroBtn1');
-  const startIntroBtn2    = document.getElementById('startIntroBtn2');
+  const continueFromInstructionsBtn = document.getElementById('continueFromInstructionsBtn');
 
-  const titleEl           = document.getElementById('title');
-  const vid               = document.getElementById('vid');
+  const startIntroBtn1      = document.getElementById('startIntroBtn1');
+  const startIntroBtn2      = document.getElementById('startIntroBtn2');
 
-  const ratingRange       = document.getElementById('ratingRange');
-  const ratingVal         = document.getElementById('ratingVal');
-  const submitBtn         = document.getElementById('submitBtn');
-  const msg               = document.getElementById('msg');
+  const titleEl             = document.getElementById('title');
+  const vid                 = document.getElementById('vid');
+
+  const ratingRange         = document.getElementById('ratingRange');
+  const ratingVal           = document.getElementById('ratingVal');
+  const submitBtn           = document.getElementById('submitBtn');
+  const msg                 = document.getElementById('msg');
 
   // reset
   participantCover.value = '';
@@ -261,8 +310,8 @@ window.addEventListener('DOMContentLoaded', () => {
   // ===== מצב =====
   let participantId = '';
 
-  // cover -> learning -> feedback -> exam -> introChoice(+intro playback) -> main
-  let phase = 'cover'; // 'learning' | 'feedback' | 'exam' | 'intro' | 'main'
+  // cover -> instructions -> learning -> feedback -> exam -> introChoice(+intro playback) -> main
+  let phase = 'cover'; // 'instructions' | 'learning' | 'feedback' | 'exam' | 'intro' | 'main'
   let learnIndex = 0;
   let feedbackIndex = 0;
   let examIndex = 0;
@@ -301,9 +350,10 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function showOnly(screen){
-    coverScreen.style.display = (screen === 'cover') ? '' : 'none';
-    introChoiceScreen.style.display = (screen === 'introChoice') ? '' : 'none';
-    mainCard.style.display = (screen === 'main') ? '' : 'none';
+    coverScreen.style.display        = (screen === 'cover') ? '' : 'none';
+    instructionsScreen.style.display = (screen === 'instructions') ? '' : 'none';
+    introChoiceScreen.style.display  = (screen === 'introChoice') ? '' : 'none';
+    mainCard.style.display           = (screen === 'main') ? '' : 'none';
   }
 
   function setRating(val){
@@ -394,7 +444,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // התחלה מדף שער -> למידה
+  // התחלה מדף שער -> מסך הוראות
   startFromCoverBtn.addEventListener('click', () => {
     const v = (participantCover.value || '').trim();
     if (!v) {
@@ -403,6 +453,14 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     participantId = v;
     pidMsg.textContent = 'נשמר ✔';
+
+    phase = 'instructions';
+    showOnly('instructions');
+  });
+
+  // מסך הוראות -> למידה
+  continueFromInstructionsBtn.addEventListener('click', () => {
+    if (!participantId) return;
 
     phase = 'learning';
     learnIndex = 0;
