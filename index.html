@@ -48,7 +48,7 @@
       cursor:pointer;
     }
 
-    .vas-wrap{ max-width:520px; margin:0 auto; } /* קצת יותר רחב */
+    .vas-wrap{ max-width:520px; margin:0 auto; }
     .vas-wrap label{ font-size:1.05rem; }
     #ratingVal{ font-size:1.35rem; font-weight:800; color:#ffd166; }
 
@@ -60,7 +60,7 @@
     input[type="range"]::-webkit-slider-runnable-track{ height:6px; border-radius:8px; background:transparent; }
     input[type="range"]::-moz-range-track{ height:6px; border-radius:8px; background:transparent; }
 
-    /* ⭐ הגדלת ה"סמן" (thumb) כדי שיהיה יותר קל לתפוס */
+    /* סמן VAS גדול יותר */
     input[type="range"]::-webkit-slider-thumb{
       -webkit-appearance:none; appearance:none;
       width:28px; height:28px; border-radius:50%;
@@ -172,13 +172,10 @@
       <h1 id="title">צפייה בסרטון</h1>
     </div>
 
-    <!-- ⭐ כאן יהיה טקסט דינמי לפי שלב -->
-    <p id="instructionsText" class="muted" style="margin-top:8px">
-      <!-- יתעדכן ב-JS -->
-    </p>
+    <!-- טקסט דינמי לפי שלב -->
+    <p id="instructionsText" class="muted" style="margin-top:8px"></p>
 
     <div>
-      <!-- כל הסרטונים בלי קול -->
       <video id="vid" controls playsinline preload="auto" muted></video>
     </div>
 
@@ -198,19 +195,13 @@
 
     <div class="row" style="margin-top:18px; align-items:center; justify-content:center;">
       <button id="submitBtn" class="btn" disabled>שליחת ציון</button>
-
-      <div id="msg"
-           style="margin-right:20px; font-size:1.6rem; font-weight:700;">
-      </div>
+      <div id="msg" style="margin-right:20px; font-size:1.6rem; font-weight:700;"></div>
     </div>
   </div>
 
 <script>
 window.addEventListener('DOMContentLoaded', () => {
 
-  // =========================
-  // יעד שמירה: Google Sheet דרך Apps Script Web App
-  // =========================
   const GOOGLE_SCRIPT_URL =
     'https://script.google.com/macros/s/AKfycby7jWvSrZuJyFYiAETn5u25RFflgcLl9ruzrjjxv-jFAXj6r47leI1KwcbVAbEb_3vI1g/exec';
 
@@ -222,12 +213,13 @@ window.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(row)
       });
-    } catch {
-      // אפשר להשאיר ריק או להציג הודעה
-    }
+    } catch {}
   }
 
-  // ===== טקסט הוראות דינמי לפי שלב =====
+  // ===== טקסטים לפי שלב =====
+  const LEARNING_TEXT =
+    'אנא צפו בסרטון עד הסוף. ציון הבדיקה מופיע בתחתית.';
+
   const FEEDBACK_TEXT =
     'אנא צפו בסרטון עד הסוף. לאחר מכן, הזיזו את הסמן על סקאלה שמתחת לסרטון בין 1 ל10 כדי לדרג את הביצועים. לאחר שתלחצו על "המשך", יוצג הציון האמיתי.';
 
@@ -288,7 +280,6 @@ window.addEventListener('DOMContentLoaded', () => {
     'https://portnoys.github.io/Naama/4.mp4'
   ];
 
-  // ===== הגבלת זמן סרטון =====
   const MAX_SECONDS_PER_VIDEO = 10;
 
   // ===== DOM =====
@@ -315,18 +306,14 @@ window.addEventListener('DOMContentLoaded', () => {
   const submitBtn           = document.getElementById('submitBtn');
   const msg                 = document.getElementById('msg');
 
-  // reset
   participantCover.value = '';
   pidMsg.textContent = '';
 
-  // תמיד בלי קול
   vid.muted = true;
   vid.volume = 0;
 
-  // ===== מצב =====
   let participantId = '';
 
-  // cover -> instructions -> learning -> feedback -> exam -> introChoice(+intro playback) -> main
   let phase = 'cover'; // 'instructions' | 'learning' | 'feedback' | 'exam' | 'intro' | 'main'
   let learnIndex = 0;
   let feedbackIndex = 0;
@@ -337,21 +324,14 @@ window.addEventListener('DOMContentLoaded', () => {
   let feedbackReveal = false;
   let vasChanged = false;
 
-  // ===== חיתוך ב-10 שניות =====
   let cutoffSeconds = MAX_SECONDS_PER_VIDEO;
   let cutoffArmed = false;
 
-  function disarmCutoff(){
-    cutoffArmed = false;
-  }
+  function disarmCutoff(){ cutoffArmed = false; }
 
   function armCutoff(){
     const dur = Number(vid.duration);
-    if (Number.isFinite(dur) && dur > 0) {
-      cutoffSeconds = Math.min(MAX_SECONDS_PER_VIDEO, dur);
-    } else {
-      cutoffSeconds = MAX_SECONDS_PER_VIDEO;
-    }
+    cutoffSeconds = (Number.isFinite(dur) && dur > 0) ? Math.min(MAX_SECONDS_PER_VIDEO, dur) : MAX_SECONDS_PER_VIDEO;
     cutoffArmed = true;
   }
 
@@ -400,20 +380,21 @@ window.addEventListener('DOMContentLoaded', () => {
     if (phase === 'main') titleEl.textContent = `צפייה בסרטון ${mainIndex+1}`;
   }
 
-  // ⭐ טקסט הדרכה דינמי: משוב=אימון, בחינה=בדיקה
+  // ✅ טקסט הדרכה לפי שלב: למידה / תרגול / בדיקה
   function setInstructionText(){
     if (!instructionsTextEl) return;
 
-    if (phase === 'feedback') {
+    if (phase === 'learning') {
+      instructionsTextEl.textContent = LEARNING_TEXT;
+    } else if (phase === 'feedback') {
       instructionsTextEl.textContent = FEEDBACK_TEXT;
     } else if (phase === 'exam') {
       instructionsTextEl.textContent = EXAM_TEXT;
     } else if (phase === 'main') {
-      // אם תרצי טקסט אחר לניסוי הראשי, אפשר לשנות כאן
+      // אם תרצה טקסט אחר לניסוי הראשי, שנה כאן. כרגע כמו בדיקה:
       instructionsTextEl.textContent = EXAM_TEXT;
     } else {
-      // למידה/מצגת וכו'
-      instructionsTextEl.textContent = 'אנא צפו בסרטון עד הסוף.';
+      instructionsTextEl.textContent = '';
     }
   }
 
@@ -465,7 +446,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // כדי לאפשר "אחרי סרטון משוב" רק אם הזיזו את ה-VAS
   ['input','change'].forEach(ev => {
     ratingRange.addEventListener(ev, () => {
       if (phase === 'feedback' || phase === 'exam' || phase === 'main') {
@@ -478,7 +458,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // התחלה מדף שער -> מסך הוראות
   startFromCoverBtn.addEventListener('click', () => {
     const v = (participantCover.value || '').trim();
     if (!v) {
@@ -492,7 +471,6 @@ window.addEventListener('DOMContentLoaded', () => {
     showOnly('instructions');
   });
 
-  // מסך הוראות -> למידה
   continueFromInstructionsBtn.addEventListener('click', () => {
     if (!participantId) return;
 
@@ -501,7 +479,6 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCurrentVideo();
   });
 
-  // ניגון ע"י לחיצה על הווידאו עצמו
   vid.addEventListener('click', async () => {
     if (!participantId) return;
 
@@ -510,11 +487,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     try { vid.currentTime = 0; } catch(e){}
 
-    try {
-      await vid.play();
-    } catch(e) {
-      try { vid.play().catch(() => {}); } catch(_) {}
-    }
+    try { await vid.play(); }
+    catch(e) { try { vid.play().catch(() => {}); } catch(_) {} }
   });
 
   function handleVideoEnd(source){
@@ -549,11 +523,8 @@ window.addEventListener('DOMContentLoaded', () => {
     armCutoff();
   });
 
-  vid.addEventListener('timeupdate', () => {
-    forceEndAtCutoff();
-  });
+  vid.addEventListener('timeupdate', () => { forceEndAtCutoff(); });
 
-  // בחירת מצגת (רק אחרי שלב הבחינה)
   function startIntroWithVideo(introUrl) {
     if (!participantId) return;
 
@@ -567,7 +538,6 @@ window.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
 
     vid.src = introUrl;
-
     vid.muted = true;
     vid.volume = 0;
 
@@ -585,12 +555,10 @@ window.addEventListener('DOMContentLoaded', () => {
   startIntroBtn1.addEventListener('click', () => startIntroWithVideo(INTRO_VIDEO_1));
   startIntroBtn2.addEventListener('click', () => startIntroWithVideo(INTRO_VIDEO_2));
 
-  // כפתור שליחה/המשך
   submitBtn.addEventListener('click', async () => {
     if (!videoCompleted) return;
     if (!participantId) return;
 
-    // ===== למידה =====
     if (phase === 'learning') {
       submitBtn.disabled = true;
 
@@ -605,7 +573,6 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // ===== תרגול עם משוב =====
     if (phase === 'feedback') {
       const vobj = FEEDBACK_VIDEOS[feedbackIndex];
 
@@ -646,7 +613,6 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // אחרי הצגת המשוב -> עוברים הלאה
       submitBtn.disabled = true;
       msg.innerHTML = '';
       ratingRange.disabled = false;
@@ -663,7 +629,6 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // ===== שלב בחינה (26) =====
     if (phase === 'exam') {
       submitBtn.disabled = true;
 
@@ -695,7 +660,6 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // ===== ניסוי ראשי =====
     if (phase === 'main') {
       submitBtn.disabled = true;
 
@@ -726,7 +690,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // init
   setRating(5.0);
   showOnly('cover');
 });
