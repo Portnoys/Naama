@@ -142,7 +142,7 @@
 
       יש לקחת בחשבון שכל נבדק צולם מספר פעמים בזמנים שונים, כך שיתכנו ביצועים שונים לאותו הנבדק.<br>
 
-      נבקשכם שלא לקחת הפסקות ארוכות בזמן דירוג הסרטונים. במידה ויש צורך בהפסקה, השתדלו לקחת אותה לפני או אחרי המצגת.<br>
+      נבקשכם שלא לקחת הפסקות ארוכות בזמן דירוג הסרטונים ולא לסגור את הדפדפן. במידה ויש צורך בהפסקה, השתדלו לקחת אותה לפני או אחרי המצגת.<br>
 
       לאורך כל הדרך ניתן להתקשר לנעמה לקבל הנחיות 0544435433<br>
       תודה.
@@ -153,7 +153,7 @@
     </div>
   </div>
 
-  <!-- מסך בחירת מצגת (יופיע רק אחרי שלב הבחינה) -->
+  <!-- מסך בחירת מצגת (יופיע רק אחרי שלב הבחינה הראשון) -->
   <div id="introChoiceScreen" class="card" style="display:none;">
     <h1>לפני השלב הבא</h1>
     <p class="muted" style="margin-top:8px;font-size:2.2rem;">
@@ -163,6 +163,24 @@
     <div class="row center-row" style="margin-top:18px;">
       <button id="startIntroBtn1" class="btn">מצגת 1</button>
       <button id="startIntroBtn2" class="btn">מצגת 2</button>
+    </div>
+  </div>
+
+  <!-- ✅ מסך מעבר אחרי המצגת (שקופית כמו עם הלוגו) -->
+  <div id="postIntroBreakScreen" class="card" style="display:none;">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;">
+      <img src="OccTherapyLogo_HEBENG_NEG.png" alt="לוגו אוניברסיטת תל אביב"
+           style="max-width:900px;width:20%;height:auto;" />
+    </div>
+
+    <h1>לפני השלב האחרון</h1>
+    <p class="muted" style="margin-top:8px;font-size:2.2rem; line-height:1.5;">
+      כעת תבצעו בדיקה נוספת ואחרונה של 26 סרטים.<br>
+      זה הזמן לעשות הפסקה קצרה, להתרענן אם יש צורך
+    </p>
+
+    <div class="row center-row" style="margin-top:18px;">
+      <button id="continueToFinalExamBtn" class="btn">המשך</button>
     </div>
   </div>
 
@@ -226,7 +244,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const EXAM_TEXT =
     'אנא צפו בסרטון עד הסוף. לאחר מכן, הזיזו את הסמן על סקאלה שמתחת לסרטון בין 1 ל10 כדי לדרג את הביצועים. לאחר שתלחצו על "המשך" תועברו לסרטון הבא (ללא גילוי הציון האמיתי).';
 
-  // ===== בסיס נתיב לקבצים החדשים (של הבחינה) =====
+  // ===== בסיס נתיב לקבצים החדשים (של הבחינות) =====
   const BASE_URL = 'https://portnoys.github.io/Naama/';
   const EXAM_EXT = '.mp4';
 
@@ -260,7 +278,7 @@ window.addEventListener('DOMContentLoaded', () => {
     { url: 'https://portnoys.github.io/Naama/אימון 12 עם משוב 2.8.mp4', score: 2.8 }
   ];
 
-  // ===== שלב בחינה (26 סרטים) =====
+  // ===== שלב בחינה ראשון (26 סרטים) =====
   const EXAM_FILES_IN_ORDER = [
     '27_8.6','25_4.4','65_8.1','27_8.4','79_1.5','74_8.1','65_1.4','22_9.8','35_1.6','67_4.7',
     '16_4.8','55_6.6','77_9.6','70_1.4','70_4.4','32_1.2','16_5.9','66_5.7','72_4.4','70_4.3',
@@ -272,13 +290,40 @@ window.addEventListener('DOMContentLoaded', () => {
     file: name
   }));
 
-  // ===== ניסוי ראשי =====
-  const MAIN_VIDEOS = [
-    'https://portnoys.github.io/Naama/7.mp4',
-    'https://portnoys.github.io/Naama/6.mp4',
-    'https://portnoys.github.io/Naama/5.mp4',
-    'https://portnoys.github.io/Naama/4.mp4'
+  // ✅ ===== שלב בחינה סופי (26 סרטים) =====
+  const FINAL_EXAM_FILES_IN_ORDER = [
+    '66_4.9',
+    '25_4.4',
+    '65_1.4',
+    '22_9.2',
+    '16_4.8',
+    '27_8.6',
+    '55_6.6',
+    '32_2.0',
+    '18_4.9',
+    '66_5.7',
+    '70_2.0',
+    '65_8.1',
+    '65_2.4',
+    '74_7.6',
+    '35_1.6',
+    '27_8.4',
+    '35_1.4',
+    '67_4.8',
+    '74_8.1',
+    '50_1.6',
+    '72_4.4',
+    '16_5.9',
+    '32_1.2',
+    '77_9.6',
+    '70_4.3',
+    '70_4.4'
   ];
+
+  const FINAL_EXAM_VIDEOS = FINAL_EXAM_FILES_IN_ORDER.map(name => ({
+    url: `${BASE_URL}${name}${EXAM_EXT}`,
+    file: name
+  }));
 
   const MAX_SECONDS_PER_VIDEO = 10;
 
@@ -286,6 +331,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const coverScreen         = document.getElementById('coverScreen');
   const instructionsScreen  = document.getElementById('instructionsScreen');
   const introChoiceScreen   = document.getElementById('introChoiceScreen');
+  const postIntroBreakScreen= document.getElementById('postIntroBreakScreen');
   const mainCard            = document.getElementById('mainCard');
 
   const participantCover    = document.getElementById('participantCover');
@@ -296,6 +342,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const startIntroBtn1      = document.getElementById('startIntroBtn1');
   const startIntroBtn2      = document.getElementById('startIntroBtn2');
+
+  const continueToFinalExamBtn = document.getElementById('continueToFinalExamBtn');
 
   const titleEl             = document.getElementById('title');
   const instructionsTextEl  = document.getElementById('instructionsText');
@@ -314,11 +362,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
   let participantId = '';
 
-  let phase = 'cover'; // 'instructions' | 'learning' | 'feedback' | 'exam' | 'intro' | 'main'
+  let phase = 'cover'; // 'instructions' | 'learning' | 'feedback' | 'exam' | 'intro' | 'postIntroBreak' | 'finalExam'
   let learnIndex = 0;
   let feedbackIndex = 0;
   let examIndex = 0;
-  let mainIndex = 0;
+  let finalExamIndex = 0;
 
   let videoCompleted = false;
   let feedbackReveal = false;
@@ -346,10 +394,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function showOnly(screen){
-    coverScreen.style.display        = (screen === 'cover') ? '' : 'none';
-    instructionsScreen.style.display = (screen === 'instructions') ? '' : 'none';
-    introChoiceScreen.style.display  = (screen === 'introChoice') ? '' : 'none';
-    mainCard.style.display           = (screen === 'main') ? '' : 'none';
+    coverScreen.style.display          = (screen === 'cover') ? '' : 'none';
+    instructionsScreen.style.display   = (screen === 'instructions') ? '' : 'none';
+    introChoiceScreen.style.display    = (screen === 'introChoice') ? '' : 'none';
+    postIntroBreakScreen.style.display = (screen === 'postIntroBreak') ? '' : 'none';
+    mainCard.style.display             = (screen === 'main') ? '' : 'none';
   }
 
   function setRating(val){
@@ -377,10 +426,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (phase === 'feedback') titleEl.textContent = `אימון עם משוב ${feedbackIndex+1} מתוך ${FEEDBACK_VIDEOS.length}`;
     if (phase === 'exam') titleEl.textContent = `שלב בחינה ${examIndex+1} מתוך ${EXAM_VIDEOS.length}`;
     if (phase === 'intro') titleEl.textContent = `מצגת`;
-    if (phase === 'main') titleEl.textContent = `צפייה בסרטון ${mainIndex+1}`;
+    if (phase === 'finalExam') titleEl.textContent = `שלב בחינה סופי ${finalExamIndex+1} מתוך ${FINAL_EXAM_VIDEOS.length}`;
   }
 
-  // ✅ טקסט הדרכה לפי שלב: למידה / תרגול / בדיקה
   function setInstructionText(){
     if (!instructionsTextEl) return;
 
@@ -388,10 +436,7 @@ window.addEventListener('DOMContentLoaded', () => {
       instructionsTextEl.textContent = LEARNING_TEXT;
     } else if (phase === 'feedback') {
       instructionsTextEl.textContent = FEEDBACK_TEXT;
-    } else if (phase === 'exam') {
-      instructionsTextEl.textContent = EXAM_TEXT;
-    } else if (phase === 'main') {
-      // אם תרצה טקסט אחר לניסוי הראשי, שנה כאן. כרגע כמו בדיקה:
+    } else if (phase === 'exam' || phase === 'finalExam') {
       instructionsTextEl.textContent = EXAM_TEXT;
     } else {
       instructionsTextEl.textContent = '';
@@ -413,7 +458,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
       ratingRange.disabled = true;
       submitBtn.textContent = 'המשך';
-
       setRating(vobj.score);
 
     } else if (phase === 'feedback') {
@@ -432,23 +476,25 @@ window.addEventListener('DOMContentLoaded', () => {
       setRating(5.0);
       submitBtn.textContent = 'שליחת ציון והמשך';
 
-    } else if (phase === 'intro') {
-      ratingRange.disabled = true;
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'המשך';
-
-    } else { // main
-      vid.src = MAIN_VIDEOS[mainIndex];
+    } else if (phase === 'finalExam') {
+      const vobj = FINAL_EXAM_VIDEOS[finalExamIndex];
+      vid.src = vobj.url;
 
       ratingRange.disabled = false;
       setRating(5.0);
-      submitBtn.textContent = 'שליחת ציון';
+      submitBtn.textContent = 'שליחת ציון והמשך';
+
+    } else if (phase === 'intro') {
+      // מטופל בתוך startIntroWithVideo
+      ratingRange.disabled = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'המשך';
     }
   }
 
   ['input','change'].forEach(ev => {
     ratingRange.addEventListener(ev, () => {
-      if (phase === 'feedback' || phase === 'exam' || phase === 'main') {
+      if (phase === 'feedback' || phase === 'exam' || phase === 'finalExam') {
         setRating(ratingRange.value);
       }
       if (phase === 'feedback' && !vasChanged) {
@@ -479,6 +525,15 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCurrentVideo();
   });
 
+  // ✅ מעבר מהשקופית אחרי המצגת לשלב בחינה סופי
+  continueToFinalExamBtn.addEventListener('click', () => {
+    if (!participantId) return;
+
+    phase = 'finalExam';
+    finalExamIndex = 0;
+    loadCurrentVideo();
+  });
+
   vid.addEventListener('click', async () => {
     if (!participantId) return;
 
@@ -499,9 +554,8 @@ window.addEventListener('DOMContentLoaded', () => {
       if (document.fullscreenElement && document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});
       }
-      phase = 'main';
-      mainIndex = 0;
-      loadCurrentVideo();
+      phase = 'postIntroBreak';
+      showOnly('postIntroBreak');
       return;
     }
 
@@ -660,18 +714,22 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (phase === 'main') {
+    // ✅ שלב בחינה סופי
+    if (phase === 'finalExam') {
       submitBtn.disabled = true;
+
+      const vobj = FINAL_EXAM_VIDEOS[finalExamIndex];
 
       const payload = {
         participant_id: participantId,
-        video_url: MAIN_VIDEOS[mainIndex],
+        video_url: vobj.url,
         rating: Number(ratingRange.value),
         user_agent: navigator.userAgent.slice(0, 500),
         meta: {
           pageHref: location.href,
-          video_index: mainIndex + 1,
-          phase: 'main',
+          video_index: finalExamIndex + 1,
+          phase: 'finalExam',
+          file_name: vobj.file,
           endedOnce: true,
           end_rule: (cutoffSeconds < MAX_SECONDS_PER_VIDEO) ? 'natural(shorter_than_10s)' : 'max_10s'
         }
@@ -679,11 +737,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
       await sheetInsert(payload);
 
-      if (mainIndex < MAIN_VIDEOS.length - 1) {
-        mainIndex++;
+      if (finalExamIndex < FINAL_EXAM_VIDEOS.length - 1) {
+        finalExamIndex++;
         loadCurrentVideo();
       } else {
         submitBtn.disabled = true;
+        ratingRange.disabled = true;
         msg.textContent = 'תודה! סיימת את כל הסרטונים.';
       }
       return;
