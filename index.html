@@ -166,6 +166,28 @@
     </div>
   </div>
 
+  <!-- ✅ מסך בדיקה אחרי המצגת: האם צפית עד הסוף? -->
+  <div id="postIntroCheckScreen" class="card" style="display:none;">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;">
+      <img src="OccTherapyLogo_HEBENG_NEG.png" alt="לוגו אוניברסיטת תל אביב"
+           style="max-width:900px;width:20%;height:auto;" />
+    </div>
+
+    <h1>שאלה קצרה</h1>
+    <p class="muted" style="margin-top:8px;font-size:2.2rem; line-height:1.5;">
+      האם צפית בכל המצגת מתחילתה ועד סופה?
+    </p>
+
+    <div class="row center-row" style="margin-top:18px;">
+      <button id="introWatchedYesBtn" class="btn">כן</button>
+      <button id="introWatchedNoBtn" class="btn">לא — צפייה חוזרת</button>
+    </div>
+
+    <p class="muted" style="margin-top:14px;font-size:1.2rem;">
+      אם לחצת "לא", תוכלו לבחור שוב איזו מצגת להפעיל.
+    </p>
+  </div>
+
   <!-- ✅ מסך מעבר אחרי המצגת (שקופית כמו עם הלוגו) -->
   <div id="postIntroBreakScreen" class="card" style="display:none;">
     <div style="display:flex;justify-content:center;margin-bottom:18px;">
@@ -290,7 +312,7 @@ window.addEventListener('DOMContentLoaded', () => {
     file: name
   }));
 
-  // ✅ ===== שלב בחינה סופי (26 סרטים) =====
+  // ===== שלב בחינה סופי (26 סרטים) =====
   const FINAL_EXAM_FILES_IN_ORDER = [
     '66_4.9',
     '25_4.4',
@@ -328,31 +350,35 @@ window.addEventListener('DOMContentLoaded', () => {
   const MAX_SECONDS_PER_VIDEO = 10;
 
   // ===== DOM =====
-  const coverScreen         = document.getElementById('coverScreen');
-  const instructionsScreen  = document.getElementById('instructionsScreen');
-  const introChoiceScreen   = document.getElementById('introChoiceScreen');
-  const postIntroBreakScreen= document.getElementById('postIntroBreakScreen');
-  const mainCard            = document.getElementById('mainCard');
+  const coverScreen           = document.getElementById('coverScreen');
+  const instructionsScreen    = document.getElementById('instructionsScreen');
+  const introChoiceScreen     = document.getElementById('introChoiceScreen');
+  const postIntroCheckScreen  = document.getElementById('postIntroCheckScreen');
+  const postIntroBreakScreen  = document.getElementById('postIntroBreakScreen');
+  const mainCard              = document.getElementById('mainCard');
 
-  const participantCover    = document.getElementById('participantCover');
-  const startFromCoverBtn   = document.getElementById('startFromCoverBtn');
-  const pidMsg              = document.getElementById('pidMsg');
+  const participantCover      = document.getElementById('participantCover');
+  const startFromCoverBtn     = document.getElementById('startFromCoverBtn');
+  const pidMsg                = document.getElementById('pidMsg');
 
   const continueFromInstructionsBtn = document.getElementById('continueFromInstructionsBtn');
 
-  const startIntroBtn1      = document.getElementById('startIntroBtn1');
-  const startIntroBtn2      = document.getElementById('startIntroBtn2');
+  const startIntroBtn1        = document.getElementById('startIntroBtn1');
+  const startIntroBtn2        = document.getElementById('startIntroBtn2');
+
+  const introWatchedYesBtn    = document.getElementById('introWatchedYesBtn');
+  const introWatchedNoBtn     = document.getElementById('introWatchedNoBtn');
 
   const continueToFinalExamBtn = document.getElementById('continueToFinalExamBtn');
 
-  const titleEl             = document.getElementById('title');
-  const instructionsTextEl  = document.getElementById('instructionsText');
-  const vid                 = document.getElementById('vid');
+  const titleEl               = document.getElementById('title');
+  const instructionsTextEl    = document.getElementById('instructionsText');
+  const vid                   = document.getElementById('vid');
 
-  const ratingRange         = document.getElementById('ratingRange');
-  const ratingVal           = document.getElementById('ratingVal');
-  const submitBtn           = document.getElementById('submitBtn');
-  const msg                 = document.getElementById('msg');
+  const ratingRange           = document.getElementById('ratingRange');
+  const ratingVal             = document.getElementById('ratingVal');
+  const submitBtn             = document.getElementById('submitBtn');
+  const msg                   = document.getElementById('msg');
 
   participantCover.value = '';
   pidMsg.textContent = '';
@@ -362,7 +388,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   let participantId = '';
 
-  let phase = 'cover'; // 'instructions' | 'learning' | 'feedback' | 'exam' | 'intro' | 'postIntroBreak' | 'finalExam'
+  let phase = 'cover'; // 'instructions' | 'learning' | 'feedback' | 'exam' | 'introChoice' | 'intro' | 'postIntroCheck' | 'postIntroBreak' | 'finalExam'
   let learnIndex = 0;
   let feedbackIndex = 0;
   let examIndex = 0;
@@ -377,7 +403,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function disarmCutoff(){ cutoffArmed = false; }
 
+  // ✅ חשוב: המצגת (phase === 'intro') רצה עד הסוף — בלי cutoff של 10 שניות
   function armCutoff(){
+    if (phase === 'intro') {
+      cutoffArmed = false;
+      return;
+    }
     const dur = Number(vid.duration);
     cutoffSeconds = (Number.isFinite(dur) && dur > 0) ? Math.min(MAX_SECONDS_PER_VIDEO, dur) : MAX_SECONDS_PER_VIDEO;
     cutoffArmed = true;
@@ -397,6 +428,7 @@ window.addEventListener('DOMContentLoaded', () => {
     coverScreen.style.display          = (screen === 'cover') ? '' : 'none';
     instructionsScreen.style.display   = (screen === 'instructions') ? '' : 'none';
     introChoiceScreen.style.display    = (screen === 'introChoice') ? '' : 'none';
+    postIntroCheckScreen.style.display = (screen === 'postIntroCheck') ? '' : 'none';
     postIntroBreakScreen.style.display = (screen === 'postIntroBreak') ? '' : 'none';
     mainCard.style.display             = (screen === 'main') ? '' : 'none';
   }
@@ -485,7 +517,6 @@ window.addEventListener('DOMContentLoaded', () => {
       submitBtn.textContent = 'שליחת ציון והמשך';
 
     } else if (phase === 'intro') {
-      // מטופל בתוך startIntroWithVideo
       ratingRange.disabled = true;
       submitBtn.disabled = true;
       submitBtn.textContent = 'המשך';
@@ -534,6 +565,18 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCurrentVideo();
   });
 
+  // ✅ אחרי המצגת: "כן" -> מסך הפסקה, "לא" -> חזרה לבחירת מצגת
+  introWatchedYesBtn.addEventListener('click', () => {
+    if (!participantId) return;
+    phase = 'postIntroBreak';
+    showOnly('postIntroBreak');
+  });
+
+  introWatchedNoBtn.addEventListener('click', () => {
+    if (!participantId) return;
+    showOnly('introChoice'); // מציג שוב שני כפתורי המצגת
+  });
+
   vid.addEventListener('click', async () => {
     if (!participantId) return;
 
@@ -554,8 +597,8 @@ window.addEventListener('DOMContentLoaded', () => {
       if (document.fullscreenElement && document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});
       }
-      phase = 'postIntroBreak';
-      showOnly('postIntroBreak');
+      phase = 'postIntroCheck';
+      showOnly('postIntroCheck');
       return;
     }
 
@@ -743,7 +786,7 @@ window.addEventListener('DOMContentLoaded', () => {
       } else {
         submitBtn.disabled = true;
         ratingRange.disabled = true;
-        msg.textContent = 'תודה! סיימת את כל הסרטונים.';
+        msg.textContent = 'תודה רבה על השתתפותך!.';
       }
       return;
     }
