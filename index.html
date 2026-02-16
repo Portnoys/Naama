@@ -60,7 +60,6 @@
     input[type="range"]::-webkit-slider-runnable-track{ height:6px; border-radius:8px; background:transparent; }
     input[type="range"]::-moz-range-track{ height:6px; border-radius:8px; background:transparent; }
 
-    /* סמן VAS גדול יותר */
     input[type="range"]::-webkit-slider-thumb{
       -webkit-appearance:none; appearance:none;
       width:28px; height:28px; border-radius:50%;
@@ -80,9 +79,35 @@
       .vas-wrap{ max-width:92vw; }
       video{ width:100%; }
     }
+
+    /* ✅ כפתור "דלג לשלב הבא" כמעט בלתי נראה בפינה שמאל למטה */
+    #skipNextBtn{
+      position:fixed;
+      left:10px;
+      bottom:10px;
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.15);
+      background:rgba(255,255,255,0.08);
+      color:rgba(255,255,255,0.12);
+      cursor:pointer;
+      opacity:0.06;              /* כמעט לא רואים */
+      z-index:9999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #skipNextBtn:hover{ opacity:0.25; }
+    #skipNextBtn:active{ opacity:0.35; transform:scale(0.98); }
   </style>
 </head>
 <body>
+
+  <!-- ✅ כפתור דילוג קבוע -->
+  <button id="skipNextBtn" aria-label="דלג לשלב הבא" title="דלג לשלב הבא">›</button>
 
   <!-- דף שער: לוגו + PID -->
   <div id="coverScreen" class="card">
@@ -91,7 +116,7 @@
            style="max-width:900px;width:30%;height:auto;" />
     </div>
 
-    <h1>לפני שנתחיל</h1>
+    <h1>לפני שמתחילים</h1>
     <p class="muted" style="margin-top:8px;font-size:2.2rem;">
       אנא הזינו מספר נבדק ואז לחצו התחלה.
     </p>
@@ -153,7 +178,7 @@
     </div>
   </div>
 
-  <!-- מסך בחירת מצגת (יופיע רק אחרי שלב הבחינה הראשון) -->
+  <!-- מסך בחירת מצגת (אופציונלי, נשאר כמו שהיה) -->
   <div id="introChoiceScreen" class="card" style="display:none;">
     <h1>לפני השלב הבא</h1>
     <p class="muted" style="margin-top:8px;font-size:2.2rem;">
@@ -166,7 +191,7 @@
     </div>
   </div>
 
-  <!-- ✅ מסך בדיקה אחרי המצגת: האם צפית עד הסוף? -->
+  <!-- מסך בדיקה אחרי המצגת -->
   <div id="postIntroCheckScreen" class="card" style="display:none;">
     <div style="display:flex;justify-content:center;margin-bottom:18px;">
       <img src="OccTherapyLogo_HEBENG_NEG.png" alt="לוגו אוניברסיטת תל אביב"
@@ -188,7 +213,7 @@
     </p>
   </div>
 
-  <!-- ✅ מסך מעבר אחרי המצגת (שקופית כמו עם הלוגו) -->
+  <!-- מסך מעבר אחרי המצגת -->
   <div id="postIntroBreakScreen" class="card" style="display:none;">
     <div style="display:flex;justify-content:center;margin-bottom:18px;">
       <img src="OccTherapyLogo_HEBENG_NEG.png" alt="לוגו אוניברסיטת תל אביב"
@@ -212,7 +237,6 @@
       <h1 id="title">צפייה בסרטון</h1>
     </div>
 
-    <!-- טקסט דינמי לפי שלב -->
     <p id="instructionsText" class="muted" style="margin-top:8px"></p>
 
     <div>
@@ -299,80 +323,28 @@ window.addEventListener('DOMContentLoaded', () => {
     { url: 'https://portnoys.github.io/Naama/אימון 11 עם משוב 5.5.mp4', score: 5.5 },
     { url: 'https://portnoys.github.io/Naama/אימון 12 עם משוב 2.8.mp4', score: 2.8 }
   ];
-// ===== שלב בחינה ראשון (26 סרטים) =====
-const EXAM_FILES_IN_ORDER = [
-  '67_4.7',
-  '25_4.4',
-  '65_8.1',
-  '35_1.6',
-  '79_1.5',
-  '74_8.1',
-  '65_1.4',
-  '27_8.6',
-  '22_9.8',
-  '27_8.4',
-  '16_4.8',
-  '55_6.6',
-  '77_9.6',
-  '70_1.4',
-  '70_4.4',
-  '32_1.2',
-  '16_5.9',
-  '66_5.7',
-  '72_4.8',
-  '70_4.3',
-  '50_1.6',
-  '18_4.6',
-  '67_4.8',
-  '35_1.4',
-  '74_7.6',
-  '32_2.0'
-];
 
-  const EXAM_VIDEOS = EXAM_FILES_IN_ORDER.map(name => ({
-    url: `${BASE_URL}${name}${EXAM_EXT}`,
-    file: name
-  }));
+  // ===== שלב בחינה ראשון (26 סרטים) =====
+  const EXAM_FILES_IN_ORDER = [
+    '67_4.7','25_4.4','65_8.1','35_1.6','79_1.5','74_8.1','65_1.4','27_8.6','22_9.8','27_8.4',
+    '16_4.8','55_6.6','77_9.6','70_1.4','70_4.4','32_1.2','16_5.9','66_5.7','72_4.8','70_4.3',
+    '50_1.6','18_4.6','67_4.8','35_1.4','74_7.6','32_2.0'
+  ];
+  const EXAM_VIDEOS = EXAM_FILES_IN_ORDER.map(name => ({ url: `${BASE_URL}${name}${EXAM_EXT}`, file: name }));
 
- // ===== שלב בחינה סופי (26 סרטים) =====
-const FINAL_EXAM_FILES_IN_ORDER = [
-  '66_4.9',
-  '25_4.4',
-  '65_1.4',
-  '22_9.2',
-  '55_6.3',
-  '27_8.6',
-  '22_9.8',
-  '27_8.4',
-  '16_4.8',
-  '66_5.7',
-  '32_2.0',
-  '65_8.1',
-  '65_2.4',
-  '74_7.6',
-  '35_1.6',
-  '70_2.0',
-  '70_1.4',
-  '67_4.8',
-  '74_8.4',
-  '50_1.6',
-  '70_4.4',
-  '16_5.9',
-  '32_1.2',
-  '77_9.6',
-  '70_4.3',
-  '72_4.4'
-];
-
-
-  const FINAL_EXAM_VIDEOS = FINAL_EXAM_FILES_IN_ORDER.map(name => ({
-    url: `${BASE_URL}${name}${EXAM_EXT}`,
-    file: name
-  }));
+  // ===== שלב בחינה סופי (26 סרטים) =====
+  const FINAL_EXAM_FILES_IN_ORDER = [
+    '66_4.9','25_4.4','65_1.4','22_9.2','55_6.3','27_8.6','22_9.8','27_8.4','16_4.8','66_5.7',
+    '32_2.0','65_8.1','65_2.4','74_7.6','35_1.6','70_2.0','70_1.4','67_4.8','74_8.4','50_1.6',
+    '70_4.4','16_5.9','32_1.2','77_9.6','70_4.3','72_4.4'
+  ];
+  const FINAL_EXAM_VIDEOS = FINAL_EXAM_FILES_IN_ORDER.map(name => ({ url: `${BASE_URL}${name}${EXAM_EXT}`, file: name }));
 
   const MAX_SECONDS_PER_VIDEO = 10;
 
   // ===== DOM =====
+  const skipNextBtn           = document.getElementById('skipNextBtn');
+
   const coverScreen           = document.getElementById('coverScreen');
   const instructionsScreen    = document.getElementById('instructionsScreen');
   const introChoiceScreen     = document.getElementById('introChoiceScreen');
@@ -411,7 +383,8 @@ const FINAL_EXAM_FILES_IN_ORDER = [
 
   let participantId = '';
 
-  let phase = 'cover'; // 'instructions' | 'learning' | 'feedback' | 'exam' | 'introChoice' | 'intro' | 'postIntroCheck' | 'postIntroBreak' | 'finalExam'
+  // phases: cover | instructions | learning | feedback | exam | introChoice | intro | postIntroCheck | postIntroBreak | finalExam
+  let phase = 'cover';
   let learnIndex = 0;
   let feedbackIndex = 0;
   let examIndex = 0;
@@ -426,7 +399,6 @@ const FINAL_EXAM_FILES_IN_ORDER = [
 
   function disarmCutoff(){ cutoffArmed = false; }
 
-  // ✅ חשוב: המצגת (phase === 'intro') רצה עד הסוף — בלי cutoff של 10 שניות
   function armCutoff(){
     if (phase === 'intro') {
       cutoffArmed = false;
@@ -546,6 +518,54 @@ const FINAL_EXAM_FILES_IN_ORDER = [
     }
   }
 
+  // ✅ כפתור דילוג: learning -> feedback -> exam -> finalExam
+  function jumpToNextPhase(){
+    if (!participantId){
+      pidMsg.textContent = 'נא להזין מספר נבדק';
+      return;
+    }
+
+    // לעצור וידאו אם רץ
+    try { vid.pause(); } catch(e){}
+
+    if (phase === 'learning') {
+      phase = 'feedback';
+      feedbackIndex = 0;
+      loadCurrentVideo();
+      return;
+    }
+
+    if (phase === 'feedback') {
+      phase = 'exam';
+      examIndex = 0;
+      loadCurrentVideo();
+      return;
+    }
+
+    if (phase === 'exam') {
+      // לפי הבקשה: מהבחינה הראשונה ישר לשנייה
+      phase = 'finalExam';
+      finalExamIndex = 0;
+      loadCurrentVideo();
+      return;
+    }
+
+    // אופציונלי: אם רוצים גם לעבור מהר משער/הוראות
+    if (phase === 'cover') {
+      showOnly('instructions');
+      phase = 'instructions';
+      return;
+    }
+    if (phase === 'instructions') {
+      phase = 'learning';
+      learnIndex = 0;
+      loadCurrentVideo();
+      return;
+    }
+  }
+
+  skipNextBtn.addEventListener('click', jumpToNextPhase);
+
   ['input','change'].forEach(ev => {
     ratingRange.addEventListener(ev, () => {
       if (phase === 'feedback' || phase === 'exam' || phase === 'finalExam') {
@@ -579,7 +599,6 @@ const FINAL_EXAM_FILES_IN_ORDER = [
     loadCurrentVideo();
   });
 
-  // ✅ מעבר מהשקופית אחרי המצגת לשלב בחינה סופי
   continueToFinalExamBtn.addEventListener('click', () => {
     if (!participantId) return;
 
@@ -588,7 +607,6 @@ const FINAL_EXAM_FILES_IN_ORDER = [
     loadCurrentVideo();
   });
 
-  // ✅ אחרי המצגת: "כן" -> מסך הפסקה, "לא" -> חזרה לבחירת מצגת
   introWatchedYesBtn.addEventListener('click', () => {
     if (!participantId) return;
     phase = 'postIntroBreak';
@@ -597,7 +615,7 @@ const FINAL_EXAM_FILES_IN_ORDER = [
 
   introWatchedNoBtn.addEventListener('click', () => {
     if (!participantId) return;
-    showOnly('introChoice'); // מציג שוב שני כפתורי המצגת
+    showOnly('introChoice');
   });
 
   vid.addEventListener('click', async () => {
@@ -612,7 +630,7 @@ const FINAL_EXAM_FILES_IN_ORDER = [
     catch(e) { try { vid.play().catch(() => {}); } catch(_) {} }
   });
 
-  function handleVideoEnd(source){
+  function handleVideoEnd(){
     if (videoCompleted) return;
     videoCompleted = true;
 
@@ -634,7 +652,7 @@ const FINAL_EXAM_FILES_IN_ORDER = [
 
   vid.addEventListener('ended', () => {
     disarmCutoff();
-    handleVideoEnd('natural');
+    handleVideoEnd();
   });
 
   vid.addEventListener('loadedmetadata', () => {
@@ -775,12 +793,14 @@ const FINAL_EXAM_FILES_IN_ORDER = [
         examIndex++;
         loadCurrentVideo();
       } else {
+        // נשאר אותו flow כמו שהיה בסוף הבחינה הראשונה:
+        // מי שרוצה לדלג ישר לבחינה השנייה -> ילחץ על הכפתור הסודי.
         showOnly('introChoice');
+        phase = 'introChoice';
       }
       return;
     }
 
-    // ✅ שלב בחינה סופי
     if (phase === 'finalExam') {
       submitBtn.disabled = true;
 
