@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>מחקר נעמה קרניאל</title>
+  <title>מחקר - נעמה קרניאל</title>
   <style>
     body{
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -249,6 +249,8 @@
     <p id="instructionsText" class="muted" style="margin-top:8px"></p>
 
     <div>
+      <!-- שימי לב: muted נשאר כאן כדי לאכוף "ברירת מחדל בלי קול".
+           למצגות אנחנו מבטלות את זה דרך JS. -->
       <video id="vid" controls playsinline preload="auto" muted></video>
     </div>
 
@@ -378,6 +380,7 @@ window.addEventListener('DOMContentLoaded', () => {
   participantCover.value = '';
   pidMsg.textContent = '';
 
+  // ✅ ברירת מחדל: שקט (מצגות יופעלו עם קול דרך startIntroWithVideo)
   vid.muted = true;
   vid.volume = 0;
 
@@ -460,18 +463,21 @@ window.addEventListener('DOMContentLoaded', () => {
     else instructionsTextEl.textContent = '';
   }
 
+  // ✅ מתוקן: בכל השלבים (חוץ ממצגת) אנחנו משתיקים כאן.
   function loadCurrentVideo(){
     resetStepUI();
     showOnly('main');
     setTitles();
     setInstructionText();
 
-    vid.muted = true;
-    vid.volume = 0;
-
     if (phase === 'learning') {
       const vobj = LEARNING_VIDEOS[learnIndex];
       vid.src = vobj.url;
+
+      // ✅ שקט
+      vid.muted = true;
+      vid.volume = 0;
+
       ratingRange.disabled = true;
       submitBtn.textContent = 'המשך';
       setRating(vobj.score);
@@ -479,6 +485,11 @@ window.addEventListener('DOMContentLoaded', () => {
     } else if (phase === 'feedback') {
       const vobj = FEEDBACK_VIDEOS[feedbackIndex];
       vid.src = vobj.url;
+
+      // ✅ שקט
+      vid.muted = true;
+      vid.volume = 0;
+
       ratingRange.disabled = false;
       setRating(5.0);
       submitBtn.textContent = 'המשך';
@@ -486,6 +497,11 @@ window.addEventListener('DOMContentLoaded', () => {
     } else if (phase === 'exam') {
       const vobj = EXAM_VIDEOS[examIndex];
       vid.src = vobj.url;
+
+      // ✅ שקט
+      vid.muted = true;
+      vid.volume = 0;
+
       ratingRange.disabled = false;
       setRating(5.0);
       submitBtn.textContent = 'שליחת ציון והמשך';
@@ -493,11 +509,17 @@ window.addEventListener('DOMContentLoaded', () => {
     } else if (phase === 'finalExam') {
       const vobj = FINAL_EXAM_VIDEOS[finalExamIndex];
       vid.src = vobj.url;
+
+      // ✅ שקט
+      vid.muted = true;
+      vid.volume = 0;
+
       ratingRange.disabled = false;
       setRating(5.0);
       submitBtn.textContent = 'שליחת ציון והמשך';
 
     } else if (phase === 'intro') {
+      // במצגת – ה-src והקול נקבעים ב-startIntroWithVideo
       ratingRange.disabled = true;
       submitBtn.disabled = true;
       submitBtn.textContent = 'המשך';
@@ -608,10 +630,18 @@ window.addEventListener('DOMContentLoaded', () => {
     showOnly('introChoice');
   });
 
+  // ✅ מתוקן: לחיצה על הוידאו תפעיל קול רק במצגת
   vid.addEventListener('click', async () => {
     if (!participantId) return;
-    vid.muted = true;
-    vid.volume = 0;
+
+    if (phase === 'intro') {
+      vid.muted = false;
+      vid.volume = 1;
+    } else {
+      vid.muted = true;
+      vid.volume = 0;
+    }
+
     try { vid.currentTime = 0; } catch(e){}
     try { await vid.play(); }
     catch(e) { try { vid.play().catch(() => {}); } catch(_) {} }
@@ -636,9 +666,17 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   vid.addEventListener('ended', () => { disarmCutoff(); handleVideoEnd(); });
-  vid.addEventListener('loadedmetadata', () => { vid.muted = true; vid.volume = 0; armCutoff(); });
+  vid.addEventListener('loadedmetadata', () => {
+    if (phase !== 'intro') {
+      // ✅ שקט בכל מה שלא מצגת
+      vid.muted = true;
+      vid.volume = 0;
+    }
+    armCutoff();
+  });
   vid.addEventListener('timeupdate', () => { forceEndAtCutoff(); });
 
+  // ✅ מתוקן: מצגת 1/2 תמיד עם קול
   function startIntroWithVideo(introUrl) {
     if (!participantId) return;
 
@@ -652,8 +690,10 @@ window.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
 
     vid.src = introUrl;
-    vid.muted = true;
-    vid.volume = 0;
+
+    // ✅ קול במצגת
+    vid.muted = false;
+    vid.volume = 1;
 
     try { vid.currentTime = 0; } catch(e){}
     const p = vid.play(); if (p && p.catch) p.catch(() => {});
